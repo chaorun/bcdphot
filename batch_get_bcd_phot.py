@@ -1,8 +1,8 @@
+#/usr/bin/env python
+
 import multiprocessing
 import glob
 from get_bcd_phot import *
-
-source_list_paths = glob.glob('bcd_dirs/*/*/*source_list.json')
 
 def process(source_list_path):
 	data_dir = source_list_path.split('source_list.json')[0]
@@ -13,8 +13,12 @@ def process(source_list_path):
 	print('created file: '+data_dir+'gross_arr.txt')
 	phot_groups = get_phot_groups(gross_arr,data_dir)
 
-ncpus = multiprocessing.cpu_count()
-pool = multiprocessing.Pool(processes=ncpus)
-print "using %i CPUs" % ncpus
+if __name__ == "__main__":
 
-pool.map(process,source_list_paths)
+	source_list_paths = glob.glob('bcd_dirs/*/*/*source_list.json')
+
+	ncpus = multiprocessing.cpu_count()
+	pool = multiprocessing.Pool(processes=ncpus)
+	print "using %i CPUs" % ncpus
+
+	pool.map(process,source_list_paths)

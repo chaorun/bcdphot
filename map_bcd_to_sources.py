@@ -1,3 +1,5 @@
+#/usr/bin/env python
+
 import os
 import sys
 import simplejson as json
@@ -28,10 +30,12 @@ def map_to_sources(filepath):
 	json.dump(d,open(outfilepath,'w'),indent=4*' ')
 	print('created file: '+outfilepath)
 
-filepaths = glob.glob('bcd_dirs/*/*/bcd_list.json')
+if __name__ == "__main__":
 
-ncpus = multiprocessing.cpu_count()
-pool = multiprocessing.Pool(processes=ncpus)
-print "using %i CPUs" % ncpus
+	filepaths = glob.glob('bcd_dirs/*/*/bcd_list.json')
 
-pool.map(map_to_sources,filepaths)
+	ncpus = multiprocessing.cpu_count()
+	pool = multiprocessing.Pool(processes=ncpus)
+	print "using %i CPUs" % ncpus
+
+	pool.map(map_to_sources,filepaths)

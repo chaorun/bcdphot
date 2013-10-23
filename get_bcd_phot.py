@@ -1,9 +1,9 @@
+#/usr/bin/env python
+
 import os
 import sys
 import glob
 import pyfits
-sys.path.append('/home/jlivings/python')
-# sys.path.append('/Users/jlivings/python_lib')
 import wcslib
 import numpy as np
 import simplejson as json
