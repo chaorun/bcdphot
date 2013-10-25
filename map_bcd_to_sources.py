@@ -27,7 +27,8 @@ def map_to_sources(filepath):
 				d[i].append((s['ra'],s['dec']))
 
 	outfilepath = filepath.replace('bcd_list.json','source_list.json')
-	json.dump(d,open(outfilepath,'w'),indent=4*' ')
+	with open(outfilepath,'w') as w:
+		json.dump(d,w,indent=4*' ')
 	print('created file: '+outfilepath)
 
 if __name__ == "__main__":
