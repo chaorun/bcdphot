@@ -1,0 +1,86 @@
+[
+    {
+        "radec": [
+            "radec_files/3813_1_long_radec.txt",
+            "radec_files/3813_1_short_radec.txt",
+            "radec_files/3813_2_long_radec.txt",
+            "radec_files/3813_2_short_radec.txt"
+        ],
+        "name": "3813",
+        "aors": [
+            "43420416",
+            "43432192",
+            "43418880"
+        ]
+    },
+    {
+        "radec": [
+            "radec_files/5883_1_long_radec.txt",
+            "radec_files/5883_1_short_radec.txt",
+            "radec_files/5883_2_long_radec.txt",
+            "radec_files/5883_2_short_radec.txt"
+        ],
+        "name": "5883",
+        "aors": [
+            "43426816",
+            "43431936",
+            "43432960"
+        ]
+    },
+    {
+        "radec": [
+            "radec_files/6035_1_long_radec.txt",
+            "radec_files/6035_1_short_radec.txt",
+            "radec_files/6035_2_long_radec.txt",
+            "radec_files/6035_2_short_radec.txt"
+        ],
+        "name": "6035",
+        "aors": [
+            "43428608",
+            "43430400",
+            "43431168"
+        ]
+    },
+    {
+        "radec": [
+            "radec_files/765_1_long_radec.txt",
+            "radec_files/765_1_short_radec.txt",
+            "radec_files/765_2_long_radec.txt",
+            "radec_files/765_2_short_radec.txt"
+        ],
+        "name": "765",
+        "aors": [
+            "43424000",
+            "43424512",
+            "43432448"
+        ]
+    },
+    {
+        "radec": [
+            "radec_files/908_1_long_radec.txt",
+            "radec_files/908_1_short_radec.txt",
+            "radec_files/908_2_long_radec.txt",
+            "radec_files/908_2_short_radec.txt"
+        ],
+        "name": "908",
+        "aors": [
+            "43431424",
+            "43432704",
+            "43427584"
+        ]
+    },
+    {
+        "radec": [
+            "radec_files/946_1_long_radec.txt",
+            "radec_files/946_1_short_radec.txt",
+            "radec_files/946_2_long_radec.txt",
+            "radec_files/946_2_short_radec.txt"
+        ],
+        "name": "946",
+        "aors": [
+            "43430656",
+            "43430912",
+            "43431680"
+        ]
+    }
+]
