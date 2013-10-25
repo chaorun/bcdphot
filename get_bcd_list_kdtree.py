@@ -45,12 +45,7 @@ def radec_to_coords(ra, dec):
 	coords[:, 2] = z
 	return coords
 
-
-if __name__ == "__main__":
-
-	# read the two commandline arguments: list of RA/Dec and dir containing BCDs
-	infile = sys.argv[1]
-	data_dir = sys.argv[2]
+def get_bcd_list(infile,data_dir):
 
 	# split the RA/Dec into two arrays
 	radec = np.genfromtxt(infile)
@@ -116,6 +111,16 @@ if __name__ == "__main__":
 
 	outfile = 'bcd_list.json'
 	outfilepath = '/'.join([data_dir,outfile])
-	json.dump(sources,open(outfilepath,'w'),indent=4*' ')
+	with open(outfilepath,'w') as w:
+		json.dump(sources,w,indent=4*' ')
 	print('created file: '+outfilepath)
 	print('maximum number of images associated with a source: '+str(max_num_images))
+
+
+if __name__ == "__main__":
+
+	# read the two commandline arguments: list of RA/Dec and dir containing BCDs
+	infile = sys.argv[1]
+	data_dir = sys.argv[2]
+
+	get_bcd_list(infile,data_dir)

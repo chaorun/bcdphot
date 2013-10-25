@@ -140,7 +140,8 @@ def get_phot_groups(gross_arr,data_dir):
 			phot_groups.append(gross_arr[idx,:])
 	phot_groups_lists = [i.tolist() for i in phot_groups]
 	d = dict(zip(hashes,phot_groups_lists))
-	json.dump(d,open(data_dir+'phot_group.json','w'),indent=4*' ')
+	with open(data_dir+'phot_group.json','w') as w:
+		json.dump(d,w,indent=4*' ')
 	print('created file: '+data_dir+'phot_group.json')
 	return phot_groups
 

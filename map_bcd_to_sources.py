@@ -31,12 +31,12 @@ def map_to_sources(filepath):
 		json.dump(d,w,indent=4*' ')
 	print('created file: '+outfilepath)
 
-if __name__ == "__main__":
-
-	filepaths = glob.glob('bcd_dirs/*/*/bcd_list.json')
-
+def map_to_sources_batch(filepaths):
 	ncpus = multiprocessing.cpu_count()
 	pool = multiprocessing.Pool(processes=ncpus)
 	print "using %i CPUs" % ncpus
-
 	pool.map(map_to_sources,filepaths)
+
+if __name__ == "__main__":
+	filepaths = glob.glob('bcd_dirs/*/*/bcd_list.json')
+
