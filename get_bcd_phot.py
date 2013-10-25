@@ -145,17 +145,10 @@ def get_phot_groups(gross_arr,data_dir):
 	print('created file: '+data_dir+'phot_group.json')
 	return phot_groups
 
-
-if __name__ == "__main__":
-	source_list_path = sys.argv[1]
-	# source_list = 'bcd_dirs/d765_ch1/short/source_list.json'
+def get_bcd_phot(source_list_path):
 	data_dir = source_list_path.split('source_list.json')[0]
-	idl = '/usr/admin/local/itt/idl70/bin/idl'
-
 	cbuncpaths = glob.glob('unzipdirs/*/*/*/*cbunc.fits')
-
 	gross_lst = get_gross_list(source_list_path,cbuncpaths)
-	# make an array from the gross list and save to data_dir
 	gross_arr = np.array(gross_lst).astype(np.float)
 	np.savetxt(data_dir+'gross_arr.txt',gross_arr)
 	print('created file: '+data_dir+'gross_arr.txt')
