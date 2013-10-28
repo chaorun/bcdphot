@@ -7,7 +7,8 @@ import wcslib
 import numpy as np
 import simplejson as json
 import multiprocessing
-from scipy.spatial import cKDTree as KDT
+from scipy.spatial 	import cKDTree as KDT
+from util 			import get_filepaths
 
 def spherical_to_cartesian(ra, dec):
 	"""
@@ -45,7 +46,7 @@ def radec_to_coords(ra, dec):
 	coords[:, 2] = z
 	return coords
 
-def get_bcd_list(infile,data_dir):
+def get_bcd_list(infile,data_dir,aors,ch,hdr):
 
 	# split the RA/Dec into two arrays
 	radec = np.genfromtxt(infile)
@@ -53,8 +54,11 @@ def get_bcd_list(infile,data_dir):
 	dec = radec[:,1]
 
 	# populate the list of BCD files in the data dir
-	filenames = np.array([i for i in os.listdir(data_dir) if 'cbcd.fits' in i])
-	filepaths = np.array(['/'.join([data_dir,i]) for i in filenames])
+	# filenames = np.array([i for i in os.listdir(data_dir) if 'cbcd.fits' in i])
+	# filepaths = np.array(['/'.join([data_dir,i]) for i in filenames])
+
+	filepaths = get_filepaths('cbcd.fits',data_dir,aors,ch,hdr)
+	filenames = [i.split('/')[-1] for i in filepaths]
 
 	# extract center pixel coordinates
 	files_ra = []
@@ -77,7 +81,7 @@ def get_bcd_list(infile,data_dir):
 	# the source, using the tree to find only the closest BCDs
 	ncpus = multiprocessing.cpu_count()
 	pool = multiprocessing.Pool(processes=ncpus)
-	print "using %i CPUs" % ncpus
+	# print "using %i CPUs" % ncpus
 
 	max_num_images = 0
 	sources = []

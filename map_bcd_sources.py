@@ -7,7 +7,7 @@ import itertools
 import glob
 import multiprocessing
 
-def map_to_sources(filepath):
+def map_bcd_sources(filepath):
 	"""
 	reads JSON bcd list file, gets the set of BCD files,
 	then associates each with a set of RA/Dec coordinates

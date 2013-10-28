@@ -16,16 +16,16 @@ def get_filepaths(suffix,data_dir,aors,ch,hdr=False):
 	walks directory tree in <data_dir> and populates a list of filepaths
 	matching the specifications given by <suffix>, <aors>, <ch>, <hdr>,
 	where: 
-		<suffix> is the filename ending to match, i.e. 'cbcd.fits'
-		<aors> is a list of strings of AOR numbers
-		<ch> is a string containing the channel number of IRAC 
-		<hdr> is a string specifying the HDR exposure: 'long','short', or False
+		<suffix> : the filename ending to match, i.e. 'cbcd.fits'
+		<aors> : a list of strings of AOR numbers
+		<ch> : a string containing the channel number of IRAC 
+		<hdr> : a string specifying the HDR exposure: 'long','short', or False
 			if False, the data are assumed to be all the same exposure time
 			(non-HDR mode)
 	"""
 	filepaths = []
 	for aor in aors:
-		for f in find_files(data_dir,'*I'+ch+'_'+aor+'*cbcd.fits'):
+		for f in find_files(data_dir,'*I'+ch+'_'+aor+'*'+suffix):
 			filename = f.split('/')[-1]
 			expnum = filename.split('_')[3]
 			if hdr == 'long':
