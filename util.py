@@ -39,3 +39,19 @@ def get_filepaths(suffix,data_dir,aors,ch,hdr=False):
 			else:
 				print('error: unexpected value for <hdr> argument')
 	return filepaths
+
+# unnecessary, just for fun
+def ignore_oserror(f):
+	"""
+	decorator for handling exceptions when dir already exists.
+	"""
+	def wrapper(arg):
+		try:
+			f(arg)
+		except OSError as e:
+			pass
+	return wrapper
+
+@ignore_oserror
+def mkdirs(dir):
+	os.makedirs(dir)

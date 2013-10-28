@@ -46,7 +46,7 @@ def radec_to_coords(ra, dec):
 	coords[:, 2] = z
 	return coords
 
-def get_bcd_list(infile,data_dir,aors,ch,hdr):
+def get_bcd_list(infile,data_dir,work_dir,aors,ch,hdr):
 
 	# split the RA/Dec into two arrays
 	radec = np.genfromtxt(infile)
@@ -114,7 +114,7 @@ def get_bcd_list(infile,data_dir,aors,ch,hdr):
 		sources.append(d)
 
 	outfile = 'bcd_list.json'
-	outfilepath = '/'.join([data_dir,outfile])
+	outfilepath = '/'.join([work_dir,outfile])
 	with open(outfilepath,'w') as w:
 		json.dump(sources,w,indent=4*' ')
 	print('created file: '+outfilepath)

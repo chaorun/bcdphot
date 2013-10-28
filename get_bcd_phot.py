@@ -89,7 +89,7 @@ def get_gross_list(source_list_path,cbuncpaths):
 		tmp_radec_path = data_dir+'tmp_radec.txt'
 		np.savetxt(tmp_radec_path,s,fmt='%.9f')
 		# spawn subprocess to get bcd_phot.pro output for the current image
-		cmd = 'echo bcd_phot,"'+bcd_path+'","'+unc_path+'","'+tmp_radec_path+
+		cmd = 'echo bcd_phot,"'+bcd_path+'","'+unc_path+'","'+tmp_radec_path+\
 			'",'+channel
 		p1 = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
 		p2 = subprocess.Popen([idl], stdin=p1.stdout, stdout=subprocess.PIPE)

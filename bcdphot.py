@@ -5,10 +5,10 @@ import sys
 import glob
 import multiprocessing
 import simplejson as json
-from util 			import find_files
-from get_bcd_list	import get_bcd_list
+from util import find_files, mkdirs
+from get_bcd_list import get_bcd_list
 from map_bcd_sources import map_bcd_sources
-from get_bcd_phot	import get_bcd_phot
+from get_bcd_phot import get_bcd_phot
 
 if __name__ == "__main__":
 
@@ -27,23 +27,9 @@ if __name__ == "__main__":
 	# from the SSC (i.e. dir containing r43432192, r43420416, etc.)
 	data_dir = sys.argv[2]
 
-	# decorator for handling exceptions when dir already exists.
-	# unnecessary, just for fun
-	def try_os(f):
-		def wrapper(arg):
-			try:
-				f(arg)
-			except OSError as e:
-				pass
-		return wrapper
-
-	@try_os
-	def mkdir(dir):
-		os.mkdir(dir)
-
-	# create output dir
-	out_dir = 'bcdphot_out'
-	mkdir(out_dir)
+	# create output dir for all pipeline output and temporary files
+	out_dir = '/'.join([data_dir,'bcdphot_out'])
+	mkdirs(out_dir)
 
 	# run get_bcd_list() to associate individual BCDs to the input sources.
 	# this function uses multiprocessing by default so just loop through
@@ -52,13 +38,14 @@ if __name__ == "__main__":
 		name = region['name']
 		# make subdirectory for region
 		mkdir('/'.join([out_dir,name]))
-		radecfiles = region['radec']
+		radecfiles = ['/'.join([data_dir,i]) for i in region['radec']]
 		aors = region['aors']
 		for radecfile in radecfiles:
 			f = radecfile.split('/')[-1]
 			ch, hdr = f.split('_')[1:3]
-			mkdir('/'.join([out_dir,name,ch])
-			get_bcd_list(radecfile,data_dir,aors,ch,hdr)
+			work_dir = '/'.join([out_dir,name,ch,hdr])
+			mkdirs(work_dir)
+			get_bcd_list(radecfile,data_dir,work_dir,aors,ch,hdr)
 
 	# now run map_to_sources to reverse the mapping such that each BCD has a 
 	# list of its associated sources
