@@ -23,12 +23,16 @@ if __name__ == "__main__":
 	infile = sys.argv[1]
 	regions = json.load(open(infile))
 	
+	# this is the master project directory containing the input file
+	# and subdirectory containing the RA/Dec source list files
+	proj_dir = sys.argv[2]
+
 	# this is the download directory containing all the data downloaded 
 	# from the SSC (i.e. dir containing r43432192, r43420416, etc.)
-	data_dir = sys.argv[2]
+	data_dir = sys.argv[3]
 
 	# create output dir for all pipeline output and temporary files
-	out_dir = '/'.join([data_dir,'bcdphot_out'])
+	out_dir = '/'.join([proj_dir,'bcdphot_out'])
 	mkdirs(out_dir)
 
 	# run get_bcd_list() to associate individual BCDs to the input sources.
@@ -38,7 +42,7 @@ if __name__ == "__main__":
 		name = region['name']
 		# make subdirectory for region
 		mkdir('/'.join([out_dir,name]))
-		radecfiles = ['/'.join([data_dir,i]) for i in region['radec']]
+		radecfiles = ['/'.join([proj_dir,i]) for i in region['radec']]
 		aors = region['aors']
 		for radecfile in radecfiles:
 			f = radecfile.split('/')[-1]

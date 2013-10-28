@@ -57,8 +57,8 @@ def get_bcd_list(infile,data_dir,work_dir,aors,ch,hdr):
 	# filenames = np.array([i for i in os.listdir(data_dir) if 'cbcd.fits' in i])
 	# filepaths = np.array(['/'.join([data_dir,i]) for i in filenames])
 
-	filepaths = get_filepaths('cbcd.fits',data_dir,aors,ch,hdr)
-	filenames = [i.split('/')[-1] for i in filepaths]
+	filepaths = np.array(get_filepaths('cbcd.fits',data_dir,aors,ch,hdr))
+	filenames = np.array([i.split('/')[-1] for i in filepaths])
 
 	# extract center pixel coordinates
 	files_ra = []
