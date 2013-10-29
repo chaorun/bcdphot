@@ -40,8 +40,6 @@ if __name__ == "__main__":
 	# the source lists, and create output directory structure for pipeline
 	for region in regions:
 		name = region['name']
-		# make subdirectory for region
-		mkdir('/'.join([out_dir,name]))
 		radecfiles = ['/'.join([proj_dir,i]) for i in region['radec']]
 		aors = region['aors']
 		for radecfile in radecfiles:
@@ -50,14 +48,21 @@ if __name__ == "__main__":
 			work_dir = '/'.join([out_dir,name,ch,hdr])
 			mkdirs(work_dir)
 			get_bcd_list(radecfile,data_dir,work_dir,aors,ch,hdr)
+			metadata = {'data_dir':data_dir, 'name':name,
+				'channel':ch, 'hdr':hdr}
+			with open(work_dir+'/metadata.json','w') as w:
+				json.dump(metadata,w)
+
 
 	# now run map_to_sources to reverse the mapping such that each BCD has a 
 	# list of its associated sources
-	filepaths = glob.glob('bcd_dirs/*/*/bcd_list.json')
-	pool.map(map_to_sources,filepaths)
+	# filepaths = glob.glob(out_dir+'/*/*/*/bcd_list.json')
+	filepaths = [i for i in find_files(out_dir,'bcd_list.json')]
+	pool.map(map_bcd_sources,filepaths)
 
 	# now run get_bcd_phot to compute photometry on all the sources 
-	source_list_paths = glob.glob('bcd_dirs/*/*/source_list.json')
+	# source_list_paths = glob.glob(out_dir+'/*/*/*/source_list.json')
+	filepaths = [i for i in find_files(out_dir,'source_list.json')]
 	pool.map(get_bcd_phot,source_list_paths)
 
 	# now run get_catalog to produce ch1/ch2,long/short catalogs

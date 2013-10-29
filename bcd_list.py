@@ -118,12 +118,13 @@ def get_bcd_list(infile,data_dir,work_dir,aors,ch,hdr):
 	with open(outfilepath,'w') as w:
 		json.dump(sources,w,indent=4*' ')
 	print('created file: '+outfilepath)
-	print('maximum number of images associated with a source: '+str(max_num_images))
+	print('maximum number of images associated with a source: '+\
+		str(max_num_images))
 
 
 if __name__ == "__main__":
 
-	# read the two commandline arguments: list of RA/Dec and dir containing BCDs
+	# read the commandline arguments: list of RA/Dec and dir containing BCDs
 	infile = sys.argv[1]
 	data_dir = sys.argv[2]
 

@@ -64,32 +64,44 @@ def radec_to_coords(ra, dec):
 	coords[:, 2] = z
 	return coords	
 
-def get_gross_list(source_list_path,cbuncpaths):
+def get_gross_list(source_list_path,data_dir,work_dir,cbuncpaths,channel):
 	"""
 	Loop through the BCD files and get photometry on all associated sources.
 	The result will be a 'gross' list of all the output from bcd_phot.pro.
 	"""
 	idl = '/usr/admin/local/itt/idl70/bin/idl'
 	sources = json.load(open(source_list_path))
-	data_dir = source_list_path.split('source_list.json')[0]
-	channel = source_list_path.split('_')[2][2]
+	# data_dir = source_list_path.split('source_list.json')[0]
+	
+	# create a dictionary with BCD filenames as the keys, full paths as values
+	bcd_paths = get_filepaths('cbcd.fits',data_dir,'*','*')
+	bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
+
+	cbunc_paths = get_filepaths('cbunc.fits',data_dir,'*','*')
+	cbunc_dict = {i.split('/')[-1]:i for i in cbunc_paths}
+
+	# channel = source_list_path.split('_')[2][2]
 	gross_lst = []
 	for key in sources.keys():
 		# keys are the BCD filenames
-		bcd_path = data_dir+key
+		bcd_path = bcd_dict[key]
 		key_base = key.split('_cbcd.fits')[0]
+
 		# now find the corresponding *cbunc.fits file to pass to bcd_phot.pro
-		for i in cbuncpaths:
-			if key_base in i:
-				unc_path = i
-				break
+		# for i in cbuncpaths:
+		# 	if key_base in i:
+		# 		unc_path = i
+		# 		break
+		cbunc_path = [v for k,v in cbunc_dict.iteritems() \
+			if key_base in k][0]
+
 		# item for key is the list of RA/Dec of sources in the image
 		s = sources[key]
 		# write to temp file so bcd_phot.pro can read it
-		tmp_radec_path = data_dir+'tmp_radec.txt'
+		tmp_radec_path = work_dir+'/tmp_radec.txt'
 		np.savetxt(tmp_radec_path,s,fmt='%.9f')
 		# spawn subprocess to get bcd_phot.pro output for the current image
-		cmd = 'echo bcd_phot,"'+bcd_path+'","'+unc_path+'","'+tmp_radec_path+\
+		cmd = 'echo bcd_phot,"'+bcd_path+'","'+cbunc_path+'","'+tmp_radec_path+\
 			'",'+channel
 		p1 = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
 		p2 = subprocess.Popen([idl], stdin=p1.stdout, stdout=subprocess.PIPE)
@@ -146,10 +158,13 @@ def get_phot_groups(gross_arr,data_dir):
 	return phot_groups
 
 def get_bcd_phot(source_list_path):
-	data_dir = source_list_path.split('source_list.json')[0]
-	cbuncpaths = glob.glob('unzipdirs/*/*/*/*cbunc.fits')
-	gross_lst = get_gross_list(source_list_path,cbuncpaths)
+	work_dir = source_list_path.split('/bcd_list.json')[0].replace('//','/')
+	# cbuncpaths = glob.glob('unzipdirs/*/*/*/*cbunc.fits')
+	meta = json.load(open(work_dir+'/metadata.json'))
+	cbuncpaths = [i for i in find_files(meta['data_dir'],'*cbunc.fits')]
+	gross_lst = get_gross_list(source_list_path,meta['data_dir'],work_dir,
+		cbuncpaths,meta['channel'])
 	gross_arr = np.array(gross_lst).astype(np.float)
-	np.savetxt(data_dir+'gross_arr.txt',gross_arr)
-	print('created file: '+data_dir+'gross_arr.txt')
-	phot_groups = get_phot_groups(gross_arr,data_dir)
+	np.savetxt(work_dir+'gross_arr.txt',gross_arr)
+	print('created file: '+work_dir+'gross_arr.txt')
+	phot_groups = get_phot_groups(gross_arr,work_dir)
