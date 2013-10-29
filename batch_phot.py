@@ -2,7 +2,7 @@
 
 import multiprocessing
 import glob
-from get_bcd_phot import *
+from bcd_phot import *
 
 def process(source_list_path):
 	data_dir = source_list_path.split('source_list.json')[0]

@@ -7,8 +7,8 @@ import wcslib
 import numpy as np
 import simplejson as json
 import multiprocessing
-from scipy.spatial 	import cKDTree as KDT
-from util 			import get_filepaths
+from scipy.spatial import cKDTree as KDT
+from util import get_filepaths
 
 def spherical_to_cartesian(ra, dec):
 	"""

@@ -6,9 +6,9 @@ import glob
 import multiprocessing
 import simplejson as json
 from util import find_files, mkdirs
-from get_bcd_list import get_bcd_list
-from map_bcd_sources import map_bcd_sources
-from get_bcd_phot import get_bcd_phot
+from bcd_list import get_bcd_list
+from bcd_sources import map_bcd_sources
+from bcd_phot import get_bcd_phot
 
 if __name__ == "__main__":
 

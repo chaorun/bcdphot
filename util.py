@@ -43,7 +43,8 @@ def get_filepaths(suffix,data_dir,aors,ch,hdr=False):
 # unnecessary, just for fun
 def ignore_oserror(f):
 	"""
-	decorator for handling exceptions when dir already exists.
+	decorator for handling OSError exceptions, i.e. when you try to
+	make a directory that already exists.
 	"""
 	def wrapper(arg):
 		try:
