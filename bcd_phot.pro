@@ -52,6 +52,9 @@ adxy,hdr,ra,dec,x,y
 ;loop through source pixel coordinates and compute photometry at that location in image
 for i=0,n_elements(x)-1 do begin
 
+	;check to make sure the pixel coordinates are finite, skip source if not
+	if not finite(x[0]) or not finite(y[0]) then continue
+
 	;centroid on x,y
 	box_centroider,img,unc^2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
 
