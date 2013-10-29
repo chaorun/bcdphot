@@ -9,6 +9,7 @@ import numpy as np
 import simplejson as json
 import subprocess, shlex
 from scipy.spatial import cKDTree as KDT
+from util import get_filepaths
 
 def spherical_to_cartesian(ra, dec):
 	"""
