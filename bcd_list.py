@@ -49,19 +49,18 @@ def radec_to_coords(ra, dec):
 def get_bcd_list(metadata):
 	"""
 	metadata is a dict with keys:
-		name, radecfile, proj_dir, work_dir, aors, channel, hdr
+		name, radecfile, proj_dir, out_dir, work_dir, aors, channel, hdr
 	"""
 
-	# keys = 'radecfile,proj_dir,work_dir,aors,channel,hdr'.split(',')
+	# keys = 'radecfile,out_dir,work_dir,aors,channel,hdr'.split(',')
 	# for key in keys:
 	# 	locals()[key] = metadata[key]
 	# doesn't work
-	radecfile,proj_dir,work_dir,aors,ch,hdr = 	metadata['radecfile'],\
-												metadata['proj_dir'],\
-												metadata['work_dir'],\
-												metadata['aors'],\
-												metadata['channel'],\
-												metadata['hdr']
+	radecfile,out_dir,work_dir,aors,hdr =	metadata['radecfile'],\
+											metadata['out_dir'],\
+											metadata['work_dir'],\
+											metadata['aors'],\
+											metadata['hdr']
 
 	# split the RA/Dec into two arrays
 	radec = np.genfromtxt(radecfile)
@@ -69,13 +68,13 @@ def get_bcd_list(metadata):
 	dec = radec[:,1]
 
 	# populate the list of BCD files in the data dir
-	# filenames = np.array([i for i in os.listdir(proj_dir) if 'cbcd.fits' in i])
-	# filepaths = np.array(['/'.join([proj_dir,i]) for i in filenames])
+	# filenames = np.array([i for i in os.listdir(out_dir) if 'cbcd.fits' in i])
+	# filepaths = np.array(['/'.join([out_dir,i]) for i in filenames])
 
-	# filepaths = np.array(get_filepaths('cbcd.fits',proj_dir,aors,ch,hdr))
+	# filepaths = np.array(get_filepaths('cbcd.fits',out_dir,aors,ch,hdr))
 	# filenames = np.array([i.split('/')[-1] for i in filepaths])
 
-	bcd_dict = json.load(open(proj_dir+'/bcd_dict.json'))
+	bcd_dict = json.load(open(out_dir+'/bcd_dict.json'))
 	filenames, filepaths = zip(*bcd_dict.items())
 	# equivalent to filenames, filepaths = bcd_dict.keys(), bcd_dict.values()
 

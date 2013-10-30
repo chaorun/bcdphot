@@ -56,8 +56,8 @@ if __name__ == "__main__":
 			work_dir = '/'.join([out_dir,name,ch,hdr])
 			mkdirs(work_dir)
 			work_dirs.append(work_dir)
-			metadata = {'name':name, 'proj_dir':proj_dir, 
-				'work_dir':work_dir, 'radecfile':radecfile,
+			metadata = {'name':name, 'proj_dir':proj_dir, 'work_dir':work_dir,
+				'out_dir':out_dir, 'radecfile':radecfile,
 				'aors':aors, 'channel':ch, 'hdr':hdr}
 			with open(work_dir+'/metadata.json','w') as w:
 				json.dump(metadata,w,indent=' '*4)
