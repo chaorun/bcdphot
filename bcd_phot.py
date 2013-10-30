@@ -176,10 +176,10 @@ def get_bcd_phot(source_list_path):
 	# save the gross output (from IDL) to text
 	gross_arr = np.array(gross_lst).astype(np.float)
 	np.savetxt(work_dir+'gross_arr.txt',gross_arr,fmt='%.8e')
-	print('created file: '+work_dir+'gross_arr.txt')
+	print('created file: '+work_dir+'/gross_arr.txt')
 	# collapse the gross output to their groupings, i.e. groups of 
 	# measurements of the same star
 	phot_groups_dict = get_phot_groups(gross_arr)
 	with open(work_dir+'phot_group.json','w') as w:
 		json.dump(phot_groups_dict,w,indent=4*' ')
-	print('created file: '+work_dir+'phot_groups.json')
+	print('created file: '+work_dir+'/phot_groups.json')
