@@ -46,19 +46,36 @@ def radec_to_coords(ra, dec):
 	coords[:, 2] = z
 	return coords
 
-def get_bcd_list(infile,data_dir,work_dir,aors,ch,hdr):
+def get_bcd_list(metadata):
+	"""
+	metadata is a dict with keys: name,radecfile,proj_dir,work_dir,aors,ch,hdr
+	"""
+
+	# radecfile,proj_dir,work_dir,aors,ch,hdr = 	metadata['radecfile'],
+	# 											metadata['proj_dir'],
+	# 											metadata['work_dir'],
+	# 											metadata['aors'],
+	# 											metadata['channel'],
+	# 											metadata['hdr']
+	keys = 'radecfile,proj_dir,work_dir,aors,ch,hdr'.split(',')
+	for key in keys:
+		locals()[key] = metadata[key]
 
 	# split the RA/Dec into two arrays
-	radec = np.genfromtxt(infile)
+	radec = np.genfromtxt(radecfile)
 	ra = radec[:,0]
 	dec = radec[:,1]
 
 	# populate the list of BCD files in the data dir
-	# filenames = np.array([i for i in os.listdir(data_dir) if 'cbcd.fits' in i])
-	# filepaths = np.array(['/'.join([data_dir,i]) for i in filenames])
+	# filenames = np.array([i for i in os.listdir(proj_dir) if 'cbcd.fits' in i])
+	# filepaths = np.array(['/'.join([proj_dir,i]) for i in filenames])
 
-	filepaths = np.array(get_filepaths('cbcd.fits',data_dir,aors,ch,hdr))
-	filenames = np.array([i.split('/')[-1] for i in filepaths])
+	# filepaths = np.array(get_filepaths('cbcd.fits',proj_dir,aors,ch,hdr))
+	# filenames = np.array([i.split('/')[-1] for i in filepaths])
+
+	bcd_dict = json.load(open(proj_dir+'/bcd_dict.json'))
+	filenames, filepaths = zip(*bcd_dict.items())
+	# equivalent to filenames, filepaths = bcd_dict.keys(), bcd_dict.values()
 
 	# extract center pixel coordinates
 	files_ra = []
@@ -120,12 +137,3 @@ def get_bcd_list(infile,data_dir,work_dir,aors,ch,hdr):
 	print('created file: '+outfilepath)
 	print('maximum number of images associated with a source: '+\
 		str(max_num_images))
-
-
-if __name__ == "__main__":
-
-	# read the commandline arguments: list of RA/Dec and dir containing BCDs
-	infile = sys.argv[1]
-	data_dir = sys.argv[2]
-
-	get_bcd_list(infile,data_dir)

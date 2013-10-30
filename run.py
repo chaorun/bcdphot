@@ -5,7 +5,7 @@ import sys
 import glob
 import multiprocessing
 import simplejson as json
-from util import find_files, mkdirs
+from util import find_files, mkdirs, get_filepaths
 from bcd_list import get_bcd_list
 from bcd_sources import map_bcd_sources
 from bcd_phot import get_bcd_phot
@@ -23,21 +23,29 @@ if __name__ == "__main__":
 	infile = sys.argv[1]
 	regions = json.load(open(infile))
 	
-	# this is the master project directory containing the input file
+	# this is the master project directory containing the data, input file,
 	# and subdirectory containing the RA/Dec source list files
-	proj_dir = sys.argv[2]
-
-	# this is the download directory containing all the data downloaded 
-	# from the SSC (i.e. dir containing r43432192, r43420416, etc.)
-	data_dir = sys.argv[3]
+	proj_dir = sys.argv[2].strip('/')
 
 	# create output dir for all pipeline output and temporary files
 	out_dir = '/'.join([proj_dir,'bcdphot_out'])
 	mkdirs(out_dir)
 
-	# run get_bcd_list() to associate individual BCDs to the input sources.
-	# this function uses multiprocessing by default so just loop through
-	# the source lists, and create output directory structure for pipeline
+	# create a dictionary with BCD filenames as the keys, full paths as values
+	bcd_paths = [i for i in find_files(proj_dir,'*cbcd.fits')]
+	bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
+	with open(out_dir+'/bcd_dict.json','w') as w:
+		json.dump(bcd_dict,w,indent=' '*4)
+
+	# do the same for UNC files
+	unc_paths = [i for i in find_files(proj_dir,'*cbunc.fits')]
+	unc_dict = {i.split('/')[-1]:i for i in unc_paths}
+	with open(out_dir+'/unc_dict.json','w') as w:
+		json.dump(unc_dict,w,indent=' '*4)
+
+	# loop through the source lists (radecfiles) and create output directory
+	# structure and metadata files used throughout the rest of the pipeline
+	work_dirs = []
 	for region in regions:
 		name = region['name']
 		radecfiles = ['/'.join([proj_dir,i]) for i in region['radec']]
@@ -47,12 +55,18 @@ if __name__ == "__main__":
 			ch, hdr = f.split('_')[1:3]
 			work_dir = '/'.join([out_dir,name,ch,hdr])
 			mkdirs(work_dir)
-			get_bcd_list(radecfile,data_dir,work_dir,aors,ch,hdr)
-			metadata = {'data_dir':data_dir, 'name':name,
-				'channel':ch, 'hdr':hdr}
+			work_dirs.append(work_dir)
+			metadata = {'name':name, 'proj_dir':proj_dir, 
+				'work_dir':work_dir, 'radecfile':radecfile,
+				'aors':aors, 'channel':ch, 'hdr':hdr}
 			with open(work_dir+'/metadata.json','w') as w:
-				json.dump(metadata,w)
+				json.dump(metadata,w,indent=' '*4)
 
+	# loop through the region/channel/hdr file structure just created and 
+	# read the metadata for each, then call get_bcd_list(meta)
+	for work_dir in work_dirs:
+		metadata = json.load(open(work_dir+'/metadata.json'))
+		get_bcd_list(metadata)
 
 	# now run map_to_sources to reverse the mapping such that each BCD has a 
 	# list of its associated sources

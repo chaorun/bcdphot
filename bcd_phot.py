@@ -65,7 +65,7 @@ def radec_to_coords(ra, dec):
 	coords[:, 2] = z
 	return coords	
 
-def get_gross_list(source_list_path,data_dir,work_dir,cbuncpaths,channel):
+def get_gross_list(source_list_path,proj_dir,work_dir,cbuncpaths,channel):
 	"""
 	Loop through the BCD files and get photometry on all associated sources.
 	The result will be a 'gross' list of all the output from bcd_phot.pro.
@@ -75,10 +75,10 @@ def get_gross_list(source_list_path,data_dir,work_dir,cbuncpaths,channel):
 	# data_dir = source_list_path.split('source_list.json')[0]
 	
 	# create a dictionary with BCD filenames as the keys, full paths as values
-	bcd_paths = get_filepaths('cbcd.fits',data_dir,'*','*')
+	bcd_paths = get_filepaths('cbcd.fits',proj_dir,'*','*')
 	bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
 
-	cbunc_paths = get_filepaths('cbunc.fits',data_dir,'*','*')
+	cbunc_paths = get_filepaths('cbunc.fits',proj_dir,'*','*')
 	cbunc_dict = {i.split('/')[-1]:i for i in cbunc_paths}
 
 	# channel = source_list_path.split('_')[2][2]
@@ -116,7 +116,7 @@ def get_gross_list(source_list_path,data_dir,work_dir,cbuncpaths,channel):
 		gross_lst = gross_lst+result_lst
 	return gross_lst
 
-def get_phot_groups(gross_arr,data_dir):
+def get_phot_groups(gross_arr,work_dir):
 	""" 
 	Uses a k-d tree to get groupings of measurements from gross array.
 	A tolerance of 1 arcsec is the criterion for group membership used
@@ -153,13 +153,13 @@ def get_phot_groups(gross_arr,data_dir):
 			phot_groups.append(gross_arr[idx,:])
 	phot_groups_lists = [i.tolist() for i in phot_groups]
 	d = dict(zip(hashes,phot_groups_lists))
-	with open(data_dir+'phot_group.json','w') as w:
+	with open(work_dir+'phot_group.json','w') as w:
 		json.dump(d,w,indent=4*' ')
-	print('created file: '+data_dir+'phot_group.json')
+	print('created file: '+work_dir+'phot_group.json')
 	return phot_groups
 
 def get_bcd_phot(source_list_path):
-	work_dir = source_list_path.split('/bcd_list.json')[0].replace('//','/')
+	work_dir = source_list_path.split('/source_list.json')[0].replace('//','/')
 	# cbuncpaths = glob.glob('unzipdirs/*/*/*/*cbunc.fits')
 	meta = json.load(open(work_dir+'/metadata.json'))
 	cbuncpaths = [i for i in find_files(meta['data_dir'],'*cbunc.fits')]
