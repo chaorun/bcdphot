@@ -57,9 +57,10 @@ if __name__ == "__main__":
 			mkdirs(work_dir)
 			work_dirs.append(work_dir)
 			bcd_paths = get_bcd_subset(bcd_dict,aors,ch,hdr)
+			unc_paths = get_bcd_subset(unc_dict,aors,ch,hdr)
 			metadata = {'name':name, 'proj_dir':proj_dir, 'work_dir':work_dir,
 				'out_dir':out_dir, 'radecfile':radecfile, 'bcd_paths':bcd_paths,
-				'aors':aors, 'channel':ch, 'hdr':hdr}
+				'unc_paths':unc_paths, 'aors':aors, 'channel':ch, 'hdr':hdr}
 			with open(work_dir+'/metadata.json','w') as w:
 				json.dump(metadata,w,indent=' '*4)
 

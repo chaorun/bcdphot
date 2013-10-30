@@ -65,11 +65,17 @@ def radec_to_coords(ra, dec):
 	coords[:, 2] = z
 	return coords	
 
-def get_gross_list(source_list_path,proj_dir,work_dir,cbuncpaths,channel):
+def get_gross_list(source_list_path,metadata):
 	"""
 	Loop through the BCD files and get photometry on all associated sources.
 	The result will be a 'gross' list of all the output from bcd_phot.pro.
 	"""
+
+	proj_dir,work_dir,cbuncpaths,channel = 	metadata['proj_dir'],\
+											metadata['work_dir'],\
+											metadata['unc_paths'],\
+											metadata['channel']
+
 	idl = '/usr/admin/local/itt/idl70/bin/idl'
 	sources = json.load(open(source_list_path))
 	# data_dir = source_list_path.split('source_list.json')[0]
@@ -116,7 +122,7 @@ def get_gross_list(source_list_path,proj_dir,work_dir,cbuncpaths,channel):
 		gross_lst = gross_lst+result_lst
 	return gross_lst
 
-def get_phot_groups(gross_arr,work_dir):
+def get_phot_groups(gross_arr):
 	""" 
 	Uses a k-d tree to get groupings of measurements from gross array.
 	A tolerance of 1 arcsec is the criterion for group membership used
@@ -152,20 +158,22 @@ def get_phot_groups(gross_arr,work_dir):
 			hashes.append(h)
 			phot_groups.append(gross_arr[idx,:])
 	phot_groups_lists = [i.tolist() for i in phot_groups]
-	d = dict(zip(hashes,phot_groups_lists))
-	with open(work_dir+'phot_group.json','w') as w:
-		json.dump(d,w,indent=4*' ')
-	print('created file: '+work_dir+'phot_group.json')
-	return phot_groups
+	phot_groups_dict = dict(zip(hashes,phot_groups_lists))
+	return phot_groups_dict
 
 def get_bcd_phot(source_list_path):
-	work_dir = source_list_path.split('/source_list.json')[0].replace('//','/')
-	# cbuncpaths = glob.glob('unzipdirs/*/*/*/*cbunc.fits')
-	meta = json.load(open(work_dir+'/metadata.json'))
-	cbuncpaths = [i for i in find_files(meta['data_dir'],'*cbunc.fits')]
-	gross_lst = get_gross_list(source_list_path,meta['data_dir'],work_dir,
-		cbuncpaths,meta['channel'])
+	work_dir = source_list_path.split('/source_list.json')[0]
+	# read metadata for the working directory
+	metadata = json.load(open(work_dir+'/metadata.json'))
+	# call get_gross_list() with output of map_bcd_sources() and metadata
+	gross_lst = get_gross_list(source_list_path,metadata)
+	# save the gross output (from IDL) to text
 	gross_arr = np.array(gross_lst).astype(np.float)
 	np.savetxt(work_dir+'gross_arr.txt',gross_arr,fmt='%.8e')
 	print('created file: '+work_dir+'gross_arr.txt')
-	phot_groups = get_phot_groups(gross_arr,work_dir)
+	# collapse the gross output to their groupings, i.e. groups of 
+	# measurements of the same star
+	phot_groups_dict = get_phot_groups(gross_arr)
+	with open(work_dir+'phot_group.json','w') as w:
+		json.dump(phot_groups_dict,w,indent=4*' ')
+	print('created file: '+work_dir+'phot_groups.json')
