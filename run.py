@@ -56,8 +56,9 @@ if __name__ == "__main__":
 			work_dir = '/'.join([out_dir,name,ch,hdr])
 			mkdirs(work_dir)
 			work_dirs.append(work_dir)
+			bcd_paths = get_filepaths('cbcd.fits',proj_dir,aors,ch,hdr)
 			metadata = {'name':name, 'proj_dir':proj_dir, 'work_dir':work_dir,
-				'out_dir':out_dir, 'radecfile':radecfile,
+				'out_dir':out_dir, 'radecfile':radecfile, 'bcd_paths':bcd_paths,
 				'aors':aors, 'channel':ch, 'hdr':hdr}
 			with open(work_dir+'/metadata.json','w') as w:
 				json.dump(metadata,w,indent=' '*4)
