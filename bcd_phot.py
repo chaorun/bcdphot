@@ -71,36 +71,42 @@ def get_gross_list(source_list_path,metadata):
 	The result will be a 'gross' list of all the output from bcd_phot.pro.
 	"""
 
-	proj_dir,work_dir,cbuncpaths,channel = 	metadata['proj_dir'],\
-											metadata['work_dir'],\
-											metadata['unc_paths'],\
-											metadata['channel']
+	proj_dir,work_dir,bcd_paths,unc_paths,channel = 	metadata['proj_dir'],\
+														metadata['work_dir'],\
+														metadata['bcd_paths'],\
+														metadata['unc_paths'],\
+														metadata['channel']
 
 	idl = '/usr/admin/local/itt/idl70/bin/idl'
 	sources = json.load(open(source_list_path))
 	# data_dir = source_list_path.split('source_list.json')[0]
 	
 	# create a dictionary with BCD filenames as the keys, full paths as values
-	bcd_paths = get_filepaths('cbcd.fits',proj_dir,'*','*')
-	bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
+	# bcd_paths = get_filepaths('cbcd.fits',proj_dir,'*','*')
+	# bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
 
-	cbunc_paths = get_filepaths('cbunc.fits',proj_dir,'*','*')
-	cbunc_dict = {i.split('/')[-1]:i for i in cbunc_paths}
+	# cbunc_paths = get_filepaths('cbunc.fits',proj_dir,'*','*')
+	# cbunc_dict = {i.split('/')[-1]:i for i in cbunc_paths}
 
 	# channel = source_list_path.split('_')[2][2]
+
+	bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
+	unc_dict = {i.split('/')[-1]:i for i in unc_paths}
+
 	gross_lst = []
 	for key in sources.keys():
 		# keys are the BCD filenames
 		bcd_path = bcd_dict[key]
-		key_base = key.split('_cbcd.fits')[0]
+		unc_key = key.replace('_cbcd.fits','_cbunc.fits')
+		unc_path = unc_dict[unc_key]
 
 		# now find the corresponding *cbunc.fits file to pass to bcd_phot.pro
 		# for i in cbuncpaths:
 		# 	if key_base in i:
 		# 		unc_path = i
 		# 		break
-		cbunc_path = [v for k,v in cbunc_dict.iteritems() \
-			if key_base in k][0]
+		# cbunc_path = [v for k,v in cbunc_dict.iteritems() \
+		# 	if key_base in k][0]
 
 		# item for key is the list of RA/Dec of sources in the image
 		s = sources[key]
@@ -108,7 +114,7 @@ def get_gross_list(source_list_path,metadata):
 		tmp_radec_path = work_dir+'/tmp_radec.txt'
 		np.savetxt(tmp_radec_path,s,fmt='%.9f')
 		# spawn subprocess to get bcd_phot.pro output for the current image
-		cmd = 'echo bcd_phot,"'+bcd_path+'","'+cbunc_path+'","'+tmp_radec_path+\
+		cmd = 'echo bcd_phot,"'+bcd_path+'","'+unc_path+'","'+tmp_radec_path+\
 			'",'+channel
 		p1 = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
 		p2 = subprocess.Popen([idl], stdin=p1.stdout, stdout=subprocess.PIPE)

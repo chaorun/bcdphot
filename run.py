@@ -79,7 +79,7 @@ if __name__ == "__main__":
 	# now run get_bcd_phot to compute photometry on all the sources 
 	# source_list_paths = glob.glob(out_dir+'/*/*/*/source_list.json')
 	filepaths = [i for i in find_files(out_dir,'source_list.json')]
-	pool.map(get_bcd_phot,source_list_paths)
+	pool.map(get_bcd_phot,filepaths)
 
 	# now run get_catalog to produce ch1/ch2,long/short catalogs
 	phot_group_paths = glob.glob('bcd_dirs/*/*/phot_group.json')
