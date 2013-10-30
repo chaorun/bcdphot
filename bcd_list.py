@@ -52,15 +52,16 @@ def get_bcd_list(metadata):
 		name, radecfile, proj_dir, work_dir, aors, channel, hdr
 	"""
 
-	# radecfile,proj_dir,work_dir,aors,ch,hdr = 	metadata['radecfile'],
-	# 											metadata['proj_dir'],
-	# 											metadata['work_dir'],
-	# 											metadata['aors'],
-	# 											metadata['channel'],
-	# 											metadata['hdr']
-	keys = 'radecfile,proj_dir,work_dir,aors,channel,hdr'.split(',')
-	for key in keys:
-		locals()[key] = metadata[key]
+	# keys = 'radecfile,proj_dir,work_dir,aors,channel,hdr'.split(',')
+	# for key in keys:
+	# 	locals()[key] = metadata[key]
+	# doesn't work
+	radecfile,proj_dir,work_dir,aors,ch,hdr = 	metadata['radecfile'],
+												metadata['proj_dir'],
+												metadata['work_dir'],
+												metadata['aors'],
+												metadata['channel'],
+												metadata['hdr']
 
 	# split the RA/Dec into two arrays
 	radec = np.genfromtxt(radecfile)
