@@ -166,6 +166,6 @@ def get_bcd_phot(source_list_path):
 	gross_lst = get_gross_list(source_list_path,meta['data_dir'],work_dir,
 		cbuncpaths,meta['channel'])
 	gross_arr = np.array(gross_lst).astype(np.float)
-	np.savetxt(work_dir+'gross_arr.txt',gross_arr)
+	np.savetxt(work_dir+'gross_arr.txt',gross_arr,fmt='%.8e')
 	print('created file: '+work_dir+'gross_arr.txt')
 	phot_groups = get_phot_groups(gross_arr,work_dir)

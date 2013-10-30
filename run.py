@@ -5,7 +5,7 @@ import sys
 import glob
 import multiprocessing
 import simplejson as json
-from util import find_files, mkdirs, get_filepaths
+from util import find_files, mkdirs, get_bcd_subset
 from bcd_list import get_bcd_list
 from bcd_sources import map_bcd_sources
 from bcd_phot import get_bcd_phot
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 			work_dir = '/'.join([out_dir,name,ch,hdr])
 			mkdirs(work_dir)
 			work_dirs.append(work_dir)
-			bcd_paths = get_filepaths('cbcd.fits',proj_dir,aors,ch,hdr)
+			bcd_paths = get_bcd_subset(bcd_dict,aors,ch,hdr)
 			metadata = {'name':name, 'proj_dir':proj_dir, 'work_dir':work_dir,
 				'out_dir':out_dir, 'radecfile':radecfile, 'bcd_paths':bcd_paths,
 				'aors':aors, 'channel':ch, 'hdr':hdr}

@@ -56,3 +56,21 @@ def ignore_oserror(f):
 @ignore_oserror
 def mkdirs(dir):
 	os.makedirs(dir)
+
+def get_bcd_subset(bcd_dict,aors,ch,hdr):
+	"""
+	finds values (full paths) in bcd_dict with keys (file names) 
+	matching aors, ch, and hdr
+	"""
+	if hdr == 'long':
+		mod = 1
+	elif hdr == 'short':
+		mod = 0
+	else:
+		return None
+	bcds = []
+	for key, value in bcd_dict.items():
+		spl = key.split('_')
+		if spl[1][1] == ch and spl[2] in aors and int(spl[3])%2 == mod:
+			bcds.append(value)
+	return bcds
