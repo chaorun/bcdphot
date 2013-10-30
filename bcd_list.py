@@ -48,7 +48,8 @@ def radec_to_coords(ra, dec):
 
 def get_bcd_list(metadata):
 	"""
-	metadata is a dict with keys: name,radecfile,proj_dir,work_dir,aors,ch,hdr
+	metadata is a dict with keys:
+		name, radecfile, proj_dir, work_dir, aors, channel, hdr
 	"""
 
 	# radecfile,proj_dir,work_dir,aors,ch,hdr = 	metadata['radecfile'],
@@ -57,7 +58,7 @@ def get_bcd_list(metadata):
 	# 											metadata['aors'],
 	# 											metadata['channel'],
 	# 											metadata['hdr']
-	keys = 'radecfile,proj_dir,work_dir,aors,ch,hdr'.split(',')
+	keys = 'radecfile,proj_dir,work_dir,aors,channel,hdr'.split(',')
 	for key in keys:
 		locals()[key] = metadata[key]
 
