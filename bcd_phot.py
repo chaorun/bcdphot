@@ -264,7 +264,7 @@ def apply_array_location_correction(args_list):
 	idx1, idx2, ds = spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.)
 	ch1, ch2 = ch1[idx1], ch2[idx2]
 	# get indices for the blue sources
-	blue = ch1[idx1]['flux'] > ch2[idx2]['flux']
+	blue = ch1['flux'] > ch2['flux']
 	# now loop through the matched sources and apply corrections
 	catalog = []
 	for i in range(ds.size):
