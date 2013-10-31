@@ -278,11 +278,12 @@ def apply_array_location_correction(args_list):
 			coord1 = zip(group1[:,2], group1[:,3])
 			group2 = np.array(ch2[i]['group'])
 			coord2 = zip(group2[:,2], group2[:,3])
-			for j in range(len(coord)):
-				x1, y1 = [int(round(k)) for k in coord1[j]]				
-				group1[j,4] *= arrloc1[x1,y1]
-				x2, y2 = [int(round(k)) for k in coord2[j]]				
-				group2[j,4] *= arrloc2[x2,y2]
+			for j in range(len(coord1)):
+				x, y = [int(round(k)) for k in coord1[j]]
+				group1[j,4] *= arrloc1[x,y]
+			for j in range(len(coord2)):
+				x, y = [int(round(k)) for k in coord2[j]]
+				group2[j,4] *= arrloc2[x,y]
 			flux1 = np.mean(group1[:,4])
 			flux2 = np.mean(group2[:,4])
 		else:
