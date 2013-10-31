@@ -28,7 +28,7 @@ if __name__ == "__main__":
 	
 	# this is the master project directory containing the data, input file,
 	# and subdirectory containing the RA/Dec source list files
-	proj_dir = sys.argv[2].strip('/')
+	proj_dir = sys.argv[2].rstrip('/')
 	print('project directory: '+proj_dir)
 
 	# create output dir for all pipeline output and temporary files
