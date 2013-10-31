@@ -168,6 +168,12 @@ def get_phot_groups(gross_arr):
 	return phot_groups_dict
 
 def get_bcd_phot(source_list_path):
+	"""
+	Reads the output of map_bcd_sources() 'source_list.json' and 
+	calls the functions get_gross_list() and get_phot_groups(),
+	which in turn get photometry from IDL subprocesses and process
+	the output.
+	"""
 	work_dir = source_list_path.split('/source_list.json')[0]
 	# read metadata for the working directory
 	metadata = json.load(open(work_dir+'/metadata.json'))
@@ -175,11 +181,48 @@ def get_bcd_phot(source_list_path):
 	gross_lst = get_gross_list(source_list_path,metadata)
 	# save the gross output (from IDL) to text
 	gross_arr = np.array(gross_lst).astype(np.float)
-	np.savetxt(work_dir+'gross_arr.txt',gross_arr,fmt='%.8e')
-	print('created file: '+work_dir+'/gross_arr.txt')
+	outfile = work_dir+'/gross_arr.txt'
+	np.savetxt(outfile,gross_arr,fmt='%.18e')
+	print('created file: '+outfile)
 	# collapse the gross output to their groupings, i.e. groups of 
 	# measurements of the same star
 	phot_groups_dict = get_phot_groups(gross_arr)
-	with open(work_dir+'phot_group.json','w') as w:
+	outfile = work_dir+'/phot_groups.json'
+	with open(outfile,'w') as w:
 		json.dump(phot_groups_dict,w,indent=4*' ')
-	print('created file: '+work_dir+'/phot_groups.json')
+	print('created file: '+outfile)
+
+def collapse_groups(phot_groups_dict):
+	"""
+	Computes the average RA, Dec, and flux, and the quadrature sum of the
+	uncertainties for a group of photometric measurements of the same source.
+	"""
+	lst = []
+	for value in phot_groups_dict.values():
+		group = np.array(value)
+		col_means = np.mean(group,0)
+		ra, dec = col_means[:2]
+		flux = col_means[4]
+		unc = np.sqrt(np.sum(group[:,5]**2))
+		row = [ra,dec,flux,unc]
+		lst.append(row)
+	return lst
+
+def save_catalog(phot_groups_path):
+	"""
+	Reads the output of get_bcd_phot() 'phot_groups.json' and collapses the
+	groups of measurements to a single row per source
+	"""
+	phot_groups_dict = json.load(open(phot_groups_path))
+	work_dir = phot_groups_path.split('/phot_groups.json')[0]
+	phot_arr = np.array(collapse_groups(phot_groups_dict))
+	outfile = work_dir+'/phot_collapsed.txt'
+	np.savetxt(outfile,phot_arr,fmt='%.18e')
+	# return phot_arr
+
+def apply_array_location_correction(ch1_cat_path,ch2_cat_path):
+	ch1_cat = np.genfromtxt(ch1_cat_path)
+	ch2_cat = np.genfromtxt(ch2_cat_path)
+	ch1_flux = ch1_cat[:,2]
+	ch2_flux = ch2_cat[:,2]
+	# need to match ch1 and ch2 sources by RA/Dec
