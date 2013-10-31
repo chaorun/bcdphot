@@ -254,17 +254,18 @@ def apply_array_location_correction(args_list):
 	ch1_path, ch2_path, out_path = args_list
 	arrloc1 = pyfits.open('ch1_photcorr_ap_5.fits')[0].data
 	arrloc2 = pyfits.open('ch2_photcorr_ap_5.fits')[0].data
-	ch1 	= np.array(json.load(open(ch1_path)))
-	ch2 	= np.array(json.load(open(ch2_path)))
-	ra1 	= np.array([i['ra'] for i in ch1])
-	dec1	= np.array([i['dec'] for i in ch1])
-	ra2 	= np.array([i['ra'] for i in ch2])
-	dec2	= np.array([i['dec'] for i in ch2])
+	ch1 = np.array(json.load(open(ch1_path)))
+	ch2 = np.array(json.load(open(ch2_path)))
+	ra1 = np.array([i['ra'] for i in ch1])
+	dec1 = np.array([i['dec'] for i in ch1])
+	ra2 = np.array([i['ra'] for i in ch2])
+	dec2 = np.array([i['dec'] for i in ch2])
 	# match ch1/ch2 RA/Dec
 	idx1, idx2, ds = spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.)
 	ch1, ch2 = ch1[idx1], ch2[idx2]
 	# get indices for the blue sources
-	blue = ch1['flux'] > ch2['flux']
+	f1, f2 = [i['flux'] for i in ch1], [i['flux'] for i in ch2]
+	blue = np.array(f1, copy=False) > np.array(f2, copy=False)
 	# now loop through the matched sources and apply corrections
 	catalog = []
 	for i in range(ds.size):
