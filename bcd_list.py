@@ -56,11 +56,10 @@ def get_bcd_list(metadata):
 	# for key in keys:
 	# 	locals()[key] = metadata[key]
 	# doesn't work
-	radecfile,out_dir,work_dir,aors,hdr =	metadata['radecfile'],\
-											metadata['out_dir'],\
-											metadata['work_dir'],\
-											metadata['aors'],\
-											metadata['hdr']
+	radecfile, work_dir, aors, hdr =	metadata['radecfile'],\
+										metadata['work_dir'],\
+										metadata['aors'],\
+										metadata['hdr']
 
 	# split the RA/Dec into two arrays
 	radec = np.genfromtxt(radecfile)
@@ -74,7 +73,8 @@ def get_bcd_list(metadata):
 	# filepaths = np.array(get_filepaths('cbcd.fits',out_dir,aors,ch,hdr))
 	# filenames = np.array([i.split('/')[-1] for i in filepaths])
 
-	bcd_dict = json.load(open(out_dir+'/bcd_dict.json'))
+	# read the region/ch/hdr specific bcd_dict in the work_dir for efficiency
+	bcd_dict = json.load(open(metadata['bcd_dict_path']))
 	filenames, filepaths = [np.array(i) for i in zip(*bcd_dict.items())]
 	# equivalent to filenames, filepaths = bcd_dict.keys(), bcd_dict.values()
 

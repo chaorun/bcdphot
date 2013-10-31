@@ -71,11 +71,9 @@ def get_gross_list(source_list_path,metadata):
 	The result will be a 'gross' list of all the output from bcd_phot.pro.
 	"""
 
-	proj_dir,work_dir,bcd_paths,unc_paths,channel = 	metadata['proj_dir'],\
-														metadata['work_dir'],\
-														metadata['bcd_paths'],\
-														metadata['unc_paths'],\
-														metadata['channel']
+	proj_dir,work_dir,channel = 	metadata['proj_dir'],\
+									metadata['work_dir'],\
+									metadata['channel']
 
 	idl = '/usr/admin/local/itt/idl70/bin/idl'
 	sources = json.load(open(source_list_path))
@@ -90,8 +88,8 @@ def get_gross_list(source_list_path,metadata):
 
 	# channel = source_list_path.split('_')[2][2]
 
-	bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
-	unc_dict = {i.split('/')[-1]:i for i in unc_paths}
+	bcd_dict = json.load(open(metadata['bcd_dict_path']))
+	unc_dict = json.load(open(metadata['unc_dict_path']))
 
 	gross_lst = []
 	for key in sources.keys():
