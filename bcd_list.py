@@ -75,7 +75,7 @@ def get_bcd_list(metadata):
 	# filenames = np.array([i.split('/')[-1] for i in filepaths])
 
 	bcd_dict = json.load(open(out_dir+'/bcd_dict.json'))
-	filenames, filepaths = zip(*bcd_dict.items())
+	filenames, filepaths = [np.array(i) for i in zip(*bcd_dict.items())]
 	# equivalent to filenames, filepaths = bcd_dict.keys(), bcd_dict.values()
 
 	# extract center pixel coordinates
@@ -109,7 +109,7 @@ def get_bcd_list(metadata):
 			' at '+str(ra[i])+', '+str(dec[i]))
 		# get the subset of BCDs to search
 		idx = get_k_closest_bcd_idx(ra[i], dec[i], kdt, k=10)
-		n_files = filepaths[idx].shape[0]
+		n_files = filepaths[idx].size
 		filepaths_subset = filepaths[idx]
 		filenames_subset = filenames[idx]
 		argslist = zip([ra[i]]*n_files, [dec[i]]*n_files, filepaths_subset)

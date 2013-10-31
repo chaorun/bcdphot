@@ -195,34 +195,98 @@ def get_bcd_phot(source_list_path):
 def collapse_groups(phot_groups_dict):
 	"""
 	Computes the average RA, Dec, and flux, and the quadrature sum of the
-	uncertainties for a group of photometric measurements of the same source.
+	uncertainties for a group of photometric measurements of the same source,
+	then returns a list of groups and their calculations.
 	"""
 	lst = []
 	for value in phot_groups_dict.values():
 		group = np.array(value)
 		col_means = np.mean(group,0)
+		# take the mean RA, Dec, and flux
 		ra, dec = col_means[:2]
 		flux = col_means[4]
+		# sum the uncertainties in quadrature
 		unc = np.sqrt(np.sum(group[:,5]**2))
-		row = [ra,dec,flux,unc]
-		lst.append(row)
+		d = dict(ra=ra,dec=dec,flux=flux,unc=unc,group=group.tolist())
+		lst.append(d)
 	return lst
 
-def save_catalog(phot_groups_path):
+def write_mean_groups(phot_groups_path):
 	"""
 	Reads the output of get_bcd_phot() 'phot_groups.json' and collapses the
 	groups of measurements to a single row per source
 	"""
 	phot_groups_dict = json.load(open(phot_groups_path))
 	work_dir = phot_groups_path.split('/phot_groups.json')[0]
-	phot_arr = np.array(collapse_groups(phot_groups_dict))
-	outfile = work_dir+'/phot_collapsed.txt'
-	np.savetxt(outfile,phot_arr,fmt='%.18e')
-	# return phot_arr
+	phot_groups_mean = collapse_groups(phot_groups_dict)
+	outfile = work_dir+'/phot_groups_mean.json'
+	with open(outfile, 'w') as w:
+		json.dump(phot_groups_mean, w, indent=' '*4)
 
-def apply_array_location_correction(ch1_cat_path,ch2_cat_path):
-	ch1_cat = np.genfromtxt(ch1_cat_path)
-	ch2_cat = np.genfromtxt(ch2_cat_path)
-	ch1_flux = ch1_cat[:,2]
-	ch2_flux = ch2_cat[:,2]
-	# need to match ch1 and ch2 sources by RA/Dec
+def spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.):
+	"""
+	Uses a k-d tree to efficiently match two pairs of coordinates in spherical
+	geometry, with a tolerance in degrees.
+	"""
+	ra1,dec1,ra2,dec2 = [np.array(i, copy=False) for i in (ra1,dec1,ra2,dec2)]
+	coords1 = radec_to_coords(ra1, dec1)
+	coords2 = radec_to_coords(ra2, dec2)
+	kdt = KDT(coords2)
+	idx2 = kdt.query(coords1)[1]
+	ds = great_circle_distance(ra1, dec1, ra2[idx2], dec2[idx2])
+	idx1 = np.arange(ra1.size)
+	msk = ds < tolerance
+	idx1 = idx1[msk]
+	idx2 = idx2[msk]
+	ds = ds[msk]
+	return idx1, idx2, ds
+
+def save_catalog(catalog, out_path):
+	header = 'ra dec ch1_flux[Jy] ch1_unc[Jy] ch2_flux[Jy] ch2_unc[Jy]'
+	np.savetxt(out_path, catalog, fmt = '%.8f', header = header)
+
+def apply_array_location_correction(args_list):
+	"""
+	Matches the input ch1 and ch2 input (from write_mean_path()) and checks for
+	sources with ch1>ch2, then applies the array location correction to these
+	sources and saves the resulting matched ch1/ch2 catalog.
+	"""
+	ch1_path, ch2_path, out_path = args_list
+	arrloc1 = pyfits.open('ch1_photcorr_ap_5.fits')[0].data
+	arrloc2 = pyfits.open('ch2_photcorr_ap_5.fits')[0].data
+	ch1 	= np.array(json.load(open(ch1_path)))
+	ch2 	= np.array(json.load(open(ch2_path)))
+	ra1 	= np.array([i['ra'] for i in ch1])
+	dec1	= np.array([i['dec'] for i in ch1])
+	ra2 	= np.array([i['ra'] for i in ch2])
+	dec2	= np.array([i['dec'] for i in ch2])
+	# match ch1/ch2 RA/Dec
+	idx1, idx2, ds = spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.)
+	ch1, ch2 = ch1[idx1], ch2[idx2]
+	# get indices for the blue sources
+	blue = ch1[idx1]['flux'] > ch2[idx2]['flux']
+	# now loop through the matched sources and apply corrections
+	catalog = []
+	for i in range(ds.size):
+		ra = np.mean( [ ch1[i]['ra'],ch2[i]['ra'] ] )
+		dec = np.mean( [ ch1[i]['dec'],ch2[i]['dec'] ] )
+		unc1, unc2 = ch1[i]['unc'], ch2[i]['unc']
+		is_blue = blue[i]
+		if is_blue:
+			group1 = np.array(ch1[i]['group'])
+			coord1 = zip(group1[:,2], group1[:,3])
+			group2 = np.array(ch2[i]['group'])
+			coord2 = zip(group2[:,2], group2[:,3])
+			for j in range(len(coord)):
+				x1, y1 = [int(round(k)) for k in coord1[j]]				
+				group1[j,4] *= arrloc1[x1,y1]
+				x2, y2 = [int(round(k)) for k in coord2[j]]				
+				group2[j,4] *= arrloc2[x2,y2]
+			flux1 = np.mean(group1[:,4])
+			flux2 = np.mean(group2[:,4])
+		else:
+			flux1 = ch1[i]['flux']
+			flux2 = ch2[i]['flux']
+		row = [ra, dec, flux1, unc1, flux2, unc2]
+		catalog.append(row)
+		save_catalog(catalog, out_path)
