@@ -64,16 +64,18 @@ if __name__ == "__main__":
 			mkdirs(work_dir)
 			work_dirs.append(work_dir)
 			# make subset bcd_dict/unc_dict in each work_dir
-			bcd_paths = get_bcd_subset(bcd_dict,aors,ch,hdr)
-			unc_paths = get_bcd_subset(unc_dict,aors,ch,hdr)
-			bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
-			unc_dict = {i.split('/')[-1]:i for i in unc_paths}
+			bcd_paths_subset = get_bcd_subset(bcd_dict,aors,ch,hdr)
+			unc_paths_subset = get_bcd_subset(unc_dict,aors,ch,hdr)
+			bcd_dict_subset = {i.split('/')[-1]:i for i in bcd_paths_subset}
+			unc_dict_subset = {i.split('/')[-1]:i for i in unc_paths_subset}
 			bcd_dict_path = work_dir+'/bcd_dict.json'
 			unc_dict_path = work_dir+'/unc_dict.json'
 			with open(bcd_dict_path,'w') as w:
-				json.dump(bcd_dict,w,indent=' '*4)
+				json.dump(bcd_dict_subset,w,indent=' '*4)
+			print('created: '+bcd_dict_path)
 			with open(unc_dict_path,'w') as w:
-				json.dump(unc_dict,w,indent=' '*4)
+				json.dump(unc_dict_subset,w,indent=' '*4)
+			print('created: '+unc_dict_path)
 			metadata = {'name':name, 'proj_dir':proj_dir, 'work_dir':work_dir,
 				'out_dir':out_dir, 'radecfile':radecfile,
 				'bcd_dict_path':bcd_dict_path, 'unc_dict_path':unc_dict_path,
@@ -85,7 +87,7 @@ if __name__ == "__main__":
 	# read the metadata for each, then call get_bcd_list(meta)
 	print('associating input sources with BCDs for:')
 	for work_dir in work_dirs:
-		print('\t'+work_dir)
+		print(work_dir)
 		metadata = json.load(open(work_dir+'/metadata.json'))
 		get_bcd_list(metadata)
 
