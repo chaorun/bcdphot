@@ -74,3 +74,6 @@ def get_bcd_subset(bcd_dict,aors,ch,hdr):
 		if spl[1][1] == ch and spl[2] in aors and int(spl[3])%2 == mod:
 			bcds.append(value)
 	return bcds
+
+def unzip(list):
+	return zip(*list)

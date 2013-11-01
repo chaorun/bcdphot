@@ -8,7 +8,7 @@ import numpy as np
 import simplejson as json
 import multiprocessing
 from scipy.spatial import cKDTree as KDT
-from util import get_filepaths
+from util import get_filepaths, unzip
 
 def spherical_to_cartesian(ra, dec):
 	"""
@@ -75,8 +75,9 @@ def get_bcd_list(metadata):
 
 	# read the region/ch/hdr specific bcd_dict in the work_dir for efficiency
 	bcd_dict = json.load(open(metadata['bcd_dict_path']))
-	filenames, filepaths = [np.array(i) for i in zip(*bcd_dict.items())]
-	# equivalent to filenames, filepaths = bcd_dict.keys(), bcd_dict.values()
+	filenames, filepaths = [np.array(i) for i in unzip(bcd_dict.items())]
+	# equiv: filenames, filepaths = [np.array(i) for i in bcd_dict.keys(),
+	# 	bcd_dict.values()]
 
 	# extract center pixel coordinates
 	files_ra = []
@@ -116,7 +117,7 @@ def get_bcd_list(metadata):
 		# send jobs to the pool
 		results = pool.map(source_in_image,argslist)
 		# unzip the results and extract the boolean array and pixel coordinates
-		results_unzipped = zip(*results)
+		results_unzipped = unzip(results)
 		bool_arr = np.array(results_unzipped[0])
 		x = results_unzipped[1]
 		y = results_unzipped[2]
