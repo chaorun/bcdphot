@@ -240,8 +240,8 @@ def spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.):
 	return idx1, idx2, ds
 
 def save_catalog(catalog, out_path):
-	header = 'ra dec ch1_flux[Jy] ch1_unc[Jy]\
-	 ch2_flux[Jy] ch2_unc[Jy] n_obs1 n_obs2'
+	header = 'ra dec ch1_flux[Jy] ch1_unc[Jy] '+\
+		'ch2_flux[Jy] ch2_unc[Jy] n_obs1 n_obs2'
 	np.savetxt(out_path, catalog, fmt = ['%.8f']*6+['%i']*2, header = header)
 	print('created file: '+out_path)
 
@@ -292,4 +292,4 @@ def apply_array_location_correction(args_list):
 			flux2 = ch2[i]['flux']
 		row = [ra, dec, flux1, unc1, flux2, unc2, n_obs1, n_obs2]
 		catalog.append(row)
-		save_catalog(catalog, out_path)
+	save_catalog(catalog, out_path)
