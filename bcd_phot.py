@@ -229,9 +229,12 @@ def save_single_channel(phot_groups_mean_path):
 	unc = np.array([i['unc'] for i in ch])
 	n_obs = np.array([len(i['group']) for i in ch])
 	catalog = np.c_[ra,dec,flux,unc,n_obs]
-	out = phot_groups_mean_path.replace('phot_groups_mean.json','catalog.txt')
+	work_dir = phot_groups_mean_path.split('/phot_groups_mean.json')[0]
+	meta = json.load(open(work_dir+'/metadata.json'))
+	out_name = '_'.join([meta['name'],meta['channe'],meta['hdr'],'catalog.txt'])
+	out_path = '/'.join([work_dir,out_name])
 	header = 'ra dec flux unc n_obs'
-	np.savetxt(out, catalog, fmt = ['%.4e']*4+['%i'], header = header)
+	np.savetxt(out_path, catalog, fmt = ['%.4e']*4+['%i'], header = header)
 
 def spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.):
 	"""

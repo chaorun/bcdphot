@@ -115,7 +115,7 @@ if __name__ == "__main__":
 	# now run save_single_channel to get individual channel/exposure catalogs
 	print('writing single channel catalogs...')
 	filepaths = [i for i in find_files(out_dir,'phot_groups_mean.json')]
-	pool.map(save_single_channel,filepaths)	
+	pool.map(save_single_channel,filepaths)
 
 	# now apply the array location dependent correction
 	print('applying array location correction...')
