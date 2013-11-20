@@ -231,7 +231,7 @@ def save_single_channel(phot_groups_mean_path):
 	catalog = np.c_[ra,dec,flux,unc,n_obs]
 	work_dir = phot_groups_mean_path.split('/phot_groups_mean.json')[0]
 	meta = json.load(open(work_dir+'/metadata.json'))
-	out_name = '_'.join([meta['name'],meta['channe'],meta['hdr'],'catalog.txt'])
+	out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],'catalog.txt'])
 	out_path = '/'.join([work_dir,out_name])
 	header = 'ra dec flux unc n_obs'
 	np.savetxt(out_path, catalog, fmt = ['%.4e']*4+['%i'], header = header)
