@@ -221,6 +221,18 @@ def write_mean_groups(phot_groups_path):
 	with open(outfile, 'w') as w:
 		json.dump(phot_groups_mean, w, indent=' '*4)
 
+def save_single_channel(phot_groups_mean_path):
+	ch = json.load(open(phot_groups_mean_path))
+	ra = np.array([i['ra'] for i in ch])
+	dec = np.array([i['dec'] for i in ch])
+	flux = np.array([i['flux'] for i in ch])
+	unc = np.array([i['unc'] for i in ch])
+	n_obs = np.array([len(i['group']) for i in ch])
+	catalog = np.c_[ra,dec,flux,unc,n_obs]
+	out = phot_groups_mean_path.replace('phot_groups_mean.json','catalog.txt')
+	header = 'ra dec flux unc n_obs'
+	np.savetxt(out, catalog, fmt = ['%.4e']*4+['%i'], header = header)
+
 def spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.):
 	"""
 	Uses a k-d tree to efficiently match two pairs of coordinates in spherical
@@ -240,8 +252,8 @@ def spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.):
 	return idx1, idx2, ds
 
 def save_catalog(catalog, out_path):
-	header = 'ra dec ch1_flux[Jy] ch1_unc[Jy] '+\
-		'ch2_flux[Jy] ch2_unc[Jy] n_obs1 n_obs2'
+	header = 'ra dec ch1_flux ch1_unc '+\
+		'ch2_flux ch2_unc n_obs1 n_obs2'
 	np.savetxt(out_path, catalog, fmt = ['%.8f']*6+['%i']*2, header = header)
 	print('created file: '+out_path)
 

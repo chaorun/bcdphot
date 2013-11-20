@@ -10,7 +10,9 @@ from bcd_list import get_bcd_list
 from bcd_sources import map_bcd_sources
 from bcd_phot import get_bcd_phot 
 from bcd_phot import write_mean_groups
+from bcd_phot import save_single_channel
 from bcd_phot import apply_array_location_correction
+
 
 if __name__ == "__main__":
 
@@ -104,11 +106,16 @@ if __name__ == "__main__":
 	filepaths = [i for i in find_files(out_dir,'source_list.json')]
 	pool.map(get_bcd_phot,filepaths)
 
-	# now run get_catalog to produce ch1/ch2,long/short catalogs
+	# now run write_mean_groups to produce ch1/ch2,long/short catalogs
 	# phot_group_paths = glob.glob('bcd_dirs/*/*/phot_groups.json')
 	print('combining multiple measurements of sources...')
 	filepaths = [i for i in find_files(out_dir,'phot_groups.json')]
 	pool.map(write_mean_groups,filepaths)
+
+	# now run save_single_channel to get individual channel/exposure catalogs
+	print('writing single channel catalogs...')
+	filepaths = [i for i in find_files(out_dir,'phot_groups_mean.json')]
+	pool.map(save_single_channel,filepaths)	
 
 	# now apply the array location dependent correction
 	print('applying array location correction...')
