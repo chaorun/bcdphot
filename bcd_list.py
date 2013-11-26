@@ -106,7 +106,7 @@ def get_bcd_list(metadata):
 	sources = []
 	for i in range(len(ra)):
 		# create internal source ID and associate with each RA/Dec pair
-		d = {'id':i 'ra':ra[i], 'dec':dec[i]}
+		d = {'id':i, 'ra':ra[i], 'dec':dec[i]}
 		print('finding files associated with source '+str(i+1)+\
 			' at '+str(ra[i])+', '+str(dec[i]))
 		# get the subset of BCDs to search
