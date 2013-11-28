@@ -109,13 +109,9 @@ def get_gross_list(source_list_path,metadata):
 		# 		result_lst.append(i.split())
 		# append the result list to the gross list
 		result_lst = [i.split() for i in result_split if 'NaN' not in i]
-		bad_lst = [i.split() for i in result_split if 'NaN' in i]
+		bad_lst = [i.split()[1:] for i in result_split if 'NaN' in i]
 		gross_lst += result_lst
 		nan_lst += bad_lst
-	# save the list of bad results in the work_dir
-	# nan_lst_path = source_list_path.replace('source_list.json','nan_list.txt')
-	# fmt = ['%i']+['%.9f']*6+['%s']*2
-	# np.savetxt(nan_lst_path,nan_lst,fmt=fmt)
 	return gross_lst, nan_lst
 
 # def get_phot_groups(gross_arr):
@@ -162,7 +158,11 @@ def get_phot_groups(gross_arr):
 	Use source ID numbers to collect photometry results of the same source
 	into groups.
 	"""
-	idnum,ra,dec,ra0,dec0,x0,y0,corrected_flux,unc
+	# idnum,ra,dec,ra0,dec0,corrected_flux,unc
+	phot_groups_dict = {}
+	for key, group in groupby(gross_arr, lambda x: x[0]):
+		phot_groups_dict[key] = [i for i in group]
+	return phot_groups_dict
 
 def get_bcd_phot(source_list_path):
 	"""
@@ -175,11 +175,16 @@ def get_bcd_phot(source_list_path):
 	# read metadata for the working directory
 	metadata = json.load(open(work_dir+'/metadata.json'))
 	# call get_gross_list() with output of map_bcd_sources() and metadata
-	gross_lst = get_gross_list(source_list_path,metadata)
-	# save the gross output (from IDL) to text
+	gross_lst, nan_lst = get_gross_list(source_list_path,metadata)
+	# save the gross output from IDL to text
 	gross_arr = np.array(gross_lst).astype(np.float)
 	outfile = work_dir+'/gross_arr.txt'
-	np.savetxt(outfile,gross_arr,fmt='%.18e')
+	np.savetxt(outfile,gross_arr,fmt=['%i']+['%.9f']*6)
+	print('created file: '+outfile)
+	# save the list of bad results from IDL to text
+	nan_arr = np.array(nan_lst).astype(np.float)
+	outfile = work_dir+'/nan_list.txt')
+	np.savetxt(outfile,nan_arr,fmt=['%i']+['%.9f']*4)
 	print('created file: '+outfile)
 	# collapse the gross output to their groupings, i.e. groups of 
 	# measurements of the same star
