@@ -70,47 +70,27 @@ def get_gross_list(source_list_path,metadata):
 	Loop through the BCD files and get photometry on all associated sources.
 	The result will be a 'gross' list of all the output from bcd_phot.pro.
 	"""
-
-	proj_dir,work_dir,channel = 	metadata['proj_dir'],\
+	proj_dir, work_dir, channel = 	metadata['proj_dir'],\
 									metadata['work_dir'],\
 									metadata['channel']
-
+	# set path to local IDL executable
 	idl = '/usr/admin/local/itt/idl70/bin/idl'
 	sources = json.load(open(source_list_path))
-	# data_dir = source_list_path.split('source_list.json')[0]
-	
-	# create a dictionary with BCD filenames as the keys, full paths as values
-	# bcd_paths = get_filepaths('cbcd.fits',proj_dir,'*','*')
-	# bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
-
-	# cbunc_paths = get_filepaths('cbunc.fits',proj_dir,'*','*')
-	# cbunc_dict = {i.split('/')[-1]:i for i in cbunc_paths}
-
-	# channel = source_list_path.split('_')[2][2]
-
 	bcd_dict = json.load(open(metadata['bcd_dict_path']))
 	unc_dict = json.load(open(metadata['unc_dict_path']))
-
-	gross_lst = []
+	# loop through the BCDs in the source list and get photometry
+	gross_lst, nan_lst = [], []
 	for key in sources.keys():
 		# keys are the BCD filenames
 		bcd_path = bcd_dict[key]
 		unc_key = key.replace('_cbcd.fits','_cbunc.fits')
 		unc_path = unc_dict[unc_key]
-
-		# now find the corresponding *cbunc.fits file to pass to bcd_phot.pro
-		# for i in cbuncpaths:
-		# 	if key_base in i:
-		# 		unc_path = i
-		# 		break
-		# cbunc_path = [v for k,v in cbunc_dict.iteritems() \
-		# 	if key_base in k][0]
-
-		# item for key is the list of RA/Dec of sources in the image
+		# item for key is the list of ID/RA/Dec of sources in the image
 		s = sources[key]
 		# write to temp file so bcd_phot.pro can read it
 		tmp_radec_path = work_dir+'/tmp_radec.txt'
-		np.savetxt(tmp_radec_path,s,fmt='%.9f')
+		# np.savetxt(tmp_radec_path,s,fmt='%.9f')
+		np.savetxt(tmp_radec_path,s,fmt=['%i']+['%.9f']*2)
 		# spawn subprocess to get bcd_phot.pro output for the current image
 		cmd = 'echo bcd_phot,"'+bcd_path+'","'+unc_path+'","'+tmp_radec_path+\
 			'",'+channel
@@ -120,50 +100,68 @@ def get_gross_list(source_list_path,metadata):
 		result_str = p2.stdout.read()
 		# split the string on newlines
 		result_split = result_str.strip().split('\n')
-		# split each line on whitespace
-		result_lst = [i.split() for i in result_split if 'NaN' not in i]
+		# split each line on whitespace and separate lines without NaNs
+		# result_lst, bad_lst = [], []
+		# for i in result_split:
+		# 	if 'NaN' in i:
+		# 		bad_lst.append(i.split())
+		# 	else:
+		# 		result_lst.append(i.split())
 		# append the result list to the gross list
-		gross_lst = gross_lst+result_lst
+		result_lst = [i.split() for i in result_split if 'NaN' not in i]
+		bad_lst = [i.split() for i in result_split if 'NaN' in i]
+		gross_lst += result_lst
+		nan_lst += bad_lst
+	# save the list of bad results in the work_dir
+	nan_lst_path = source_list_path.replace('source_list.json','nan_list.txt')
+	fmt = ['%i']+['%.9f']*6+['%s']*2
+	np.savetxt(nan_lst_path,nan_lst,fmt=fmt)
 	return gross_lst
 
+# def get_phot_groups(gross_arr):
+# 	""" 
+# 	Uses a k-d tree to get groupings of measurements from gross array.
+# 	A tolerance of 1 arcsec is the criterion for group membership used
+# 	to produce the 'net' list, which contains arrays of the groups.
+# 	"""
+# 	# construct the k-d tree from the sources' cartesian coordinates
+# 	ra, dec = gross_arr[:,0],gross_arr[:,1]
+# 	coords = radec_to_coords(ra, dec)
+# 	kdt = KDT(coords)
+# 	# set tolerance to 1 arcsec (in degrees)
+# 	tol = 1/3600.
+# 	# list to store the groups of bcd_phot.pro output
+# 	phot_groups = []
+# 	# list to store the hashes of each sorted group array
+# 	hashes = []
+# 	for i in range(gross_arr.shape[0]):
+# 		# get the ith pair of RA/Dec to search the k-d tree with
+# 		rai, deci = gross_arr[i,0],gross_arr[i,1]
+# 		# search the tree
+# 		idx = get_k_closest_idx(rai,deci,kdt,k=10)
+# 		# compute distances of query result RA/Dec to search RA/Dec
+# 		ds = great_circle_distance(rai, deci, ra[idx], dec[idx])
+# 		# mask out the query results more distant than the tolerance
+# 		msk = ds < tol
+# 		idx = idx[msk]
+# 		# sort the index array so order is preserved in each query result
+# 		#	(this allows the hashing trick to work)
+# 		idx.sort()
+# 		# compute hash of string reprentation of result array (fastest)
+# 		h = hash(gross_arr[idx,:].tostring())
+# 		# only keep the results (measurement groupings) we haven't seen already
+# 		if h not in hashes:
+# 			hashes.append(h)
+# 			phot_groups.append(gross_arr[idx,:])
+# 	phot_groups_lists = [i.tolist() for i in phot_groups]
+# 	phot_groups_dict = dict(zip(hashes,phot_groups_lists))
+# 	return phot_groups_dict
+
 def get_phot_groups(gross_arr):
-	""" 
-	Uses a k-d tree to get groupings of measurements from gross array.
-	A tolerance of 1 arcsec is the criterion for group membership used
-	to produce the 'net' list, which contains arrays of the groups.
 	"""
-	# construct the k-d tree from the sources' cartesian coordinates
-	ra, dec = gross_arr[:,0],gross_arr[:,1]
-	coords = radec_to_coords(ra, dec)
-	kdt = KDT(coords)
-	# set tolerance to 1 arcsec (in degrees)
-	tol = 1/3600.
-	# list to store the groups of bcd_phot.pro output
-	phot_groups = []
-	# list to store the hashes of each sorted group array
-	hashes = []
-	for i in range(gross_arr.shape[0]):
-		# get the ith pair of RA/Dec to search the k-d tree with
-		rai, deci = gross_arr[i,0],gross_arr[i,1]
-		# search the tree
-		idx = get_k_closest_idx(rai,deci,kdt,k=10)
-		# compute distances of query result RA/Dec to search RA/Dec
-		ds = great_circle_distance(rai, deci, ra[idx], dec[idx])
-		# mask out the query results more distant than the tolerance
-		msk = ds < tol
-		idx = idx[msk]
-		# sort the index array so order is preserved in each query result
-		#	(this allows the hashing trick to work)
-		idx.sort()
-		# compute hash of string reprentation of result array (fastest)
-		h = hash(gross_arr[idx,:].tostring())
-		# only keep the results (measurement groupings) we haven't seen already
-		if h not in hashes:
-			hashes.append(h)
-			phot_groups.append(gross_arr[idx,:])
-	phot_groups_lists = [i.tolist() for i in phot_groups]
-	phot_groups_dict = dict(zip(hashes,phot_groups_lists))
-	return phot_groups_dict
+	Use source ID numbers to collect photometry results of the same source
+	into groups.
+	"""
 
 def get_bcd_phot(source_list_path):
 	"""
@@ -222,6 +220,10 @@ def write_mean_groups(phot_groups_path):
 		json.dump(phot_groups_mean, w, indent=' '*4)
 
 def save_single_channel(phot_groups_mean_path):
+	"""
+	Creates a single channel/exposure catalog (no matching to other channel),
+	and saves to disk.
+	"""
 	ch = json.load(open(phot_groups_mean_path))
 	ra = np.array([i['ra'] for i in ch])
 	dec = np.array([i['dec'] for i in ch])

@@ -22,6 +22,11 @@ def spherical_to_cartesian(ra, dec):
 	return x, y, z
 
 def source_in_image(argslist):
+	"""
+	Reads the input FITS file and checks to make sure the RA/Dec pair
+	corresponds to a physical pixel on the array.
+	argslist = [RA, Dec, BCD]
+	"""
 	ra, dec, fitsfile = argslist
 	hdr = pyfits.getheader(fitsfile)
 	wcs = wcslib.WcsProjection(hdr)
@@ -34,11 +39,21 @@ def source_in_image(argslist):
 		return (False,x,y)
 
 def get_k_closest_bcd_idx(ra, dec, tree, k=10):
+	"""
+	Returns the indices of the k BCDs with central coordinates closest
+	to the input RA/Dec coordinate pair.
+	"""
 	coords = radec_to_coords(ra, dec)
 	idx = tree.query(coords,k=k)[1].ravel()
 	return idx
 
 def radec_to_coords(ra, dec):
+	"""
+	Helper function for constructing/querying k-d trees with coordinates
+	in spherical geometry.
+	Converts the input arrays from spherical coordinates to cartesion
+	and populates a 3-dimensional array with the result.
+	"""
 	x, y, z = spherical_to_cartesian(ra, dec)
 	coords = np.empty((x.size, 3))
 	coords[:, 0] = x
@@ -48,14 +63,10 @@ def radec_to_coords(ra, dec):
 
 def get_bcd_list(metadata):
 	"""
-	metadata is a dict with keys:
+	Metadata is a dict with keys:
 		name, radecfile, proj_dir, out_dir, work_dir, aors, channel, hdr
 	"""
 
-	# keys = 'radecfile,out_dir,work_dir,aors,channel,hdr'.split(',')
-	# for key in keys:
-	# 	locals()[key] = metadata[key]
-	# doesn't work
 	radecfile, work_dir, aors, hdr =	metadata['radecfile'],\
 										metadata['work_dir'],\
 										metadata['aors'],\
@@ -66,18 +77,9 @@ def get_bcd_list(metadata):
 	ra = radec[:,0]
 	dec = radec[:,1]
 
-	# populate the list of BCD files in the data dir
-	# filenames = np.array([i for i in os.listdir(out_dir) if 'cbcd.fits' in i])
-	# filepaths = np.array(['/'.join([out_dir,i]) for i in filenames])
-
-	# filepaths = np.array(get_filepaths('cbcd.fits',out_dir,aors,ch,hdr))
-	# filenames = np.array([i.split('/')[-1] for i in filepaths])
-
 	# read the region/ch/hdr specific bcd_dict in the work_dir for efficiency
 	bcd_dict = json.load(open(metadata['bcd_dict_path']))
 	filenames, filepaths = [np.array(i) for i in unzip(bcd_dict.items())]
-	# equiv: filenames, filepaths = [np.array(i) for i in bcd_dict.keys(),
-	# 	bcd_dict.values()]
 
 	# extract center pixel coordinates
 	files_ra = []

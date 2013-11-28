@@ -9,8 +9,8 @@ import multiprocessing
 
 def map_bcd_sources(filepath):
 	"""
-	reads JSON bcd list file, gets the set of BCD files,
-	then associates each with a set of RA/Dec coordinates
+	Reads JSON bcd list file, gets the set of BCD files,
+	then associates each with a set of RA/Dec coordinates (and source ID).
 	"""
 	sources = json.load(open(filepath))
 
@@ -24,7 +24,7 @@ def map_bcd_sources(filepath):
 		d[i] = []
 		for s in sources:
 			if i in s['files']:
-				d[i].append((s['ra'],s['dec']))
+				d[i].append((s['id'],s['ra'],s['dec']))
 
 	outfilepath = filepath.replace('bcd_list.json','source_list.json')
 	with open(outfilepath,'w') as w:

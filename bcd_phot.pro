@@ -9,6 +9,8 @@ PRO bcd_phot,cbcdfile,cbuncfile,radeclist,channel
 ;	John Livingston
 ; DATE
 ;	10/01/13
+; MODIFIED
+;	11/27/13 -- now supports new input format containing ID field per source
 
 ;aper.pro setup
 ;phpadu = 1          ;now using the correct value calculated from the header info
@@ -31,7 +33,7 @@ if channel eq 1 then ap_cor = ap_cor_ch1
 if channel eq 2 then ap_cor = ap_cor_ch2
 
 ;read in list of RA/Dec for sources to be measured in fitsfile image
-readcol,radeclist,ra,dec,format='D,D'
+readcol,radeclist,id,ra,dec,format='I,D,D'
 
 ;read in fits image and header
 img = readfits(cbcdfile,hdr,/silent)
@@ -76,7 +78,7 @@ for i=0,n_elements(x)-1 do begin
 	xyad,hdr,x0,y0,ra0,dec0
 
 	;print the data
-	print,strcompress([ra0,dec0,x0,y0,corrected_flux,unc])
+	print,strcompress([id[i],ra[i]],dec[i],ra0,dec0,x0,y0,corrected_flux,unc])
 
 endfor
 	
