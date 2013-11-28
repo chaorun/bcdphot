@@ -81,7 +81,7 @@ for i=0,n_elements(x)-1 do begin
 	if finite(flux_aper) eq 1 then begin
 		print,strcompress([string(id[i]),string([ra[i],dec[i],ra0,dec0,corrected_flux,unc])])
 	endif else begin
-		print,strcompress(['NaN',string(id[i]),string([ra0,dec0,x,y])])
+		print,strcompress(['NaN',string(id[i]),string([ra0,dec0,x0,y0])])
 	endelse
 
 endfor
