@@ -78,12 +78,12 @@ for i=0,n_elements(x)-1 do begin
 	xyad,hdr,x0,y0,ra0,dec0
 
 	;print the data
-	if finite(flux_aper) then begin
+	if finite(flux_aper) eq 1 then begin
 		print,strcompress([id[i],ra[i],dec[i],ra0,dec0,corrected_flux,unc])
 	endif else begin
 		print,strcompress(['NaN',id[i],ra0,dec0,x,y])
 	endelse
-	
+
 endfor
 	
 END
