@@ -113,10 +113,10 @@ def get_gross_list(source_list_path,metadata):
 		gross_lst += result_lst
 		nan_lst += bad_lst
 	# save the list of bad results in the work_dir
-	nan_lst_path = source_list_path.replace('source_list.json','nan_list.txt')
-	fmt = ['%i']+['%.9f']*6+['%s']*2
-	np.savetxt(nan_lst_path,nan_lst,fmt=fmt)
-	return gross_lst
+	# nan_lst_path = source_list_path.replace('source_list.json','nan_list.txt')
+	# fmt = ['%i']+['%.9f']*6+['%s']*2
+	# np.savetxt(nan_lst_path,nan_lst,fmt=fmt)
+	return gross_lst, nan_lst
 
 # def get_phot_groups(gross_arr):
 # 	""" 
@@ -162,6 +162,7 @@ def get_phot_groups(gross_arr):
 	Use source ID numbers to collect photometry results of the same source
 	into groups.
 	"""
+	idnum,ra,dec,ra0,dec0,x0,y0,corrected_flux,unc
 
 def get_bcd_phot(source_list_path):
 	"""
