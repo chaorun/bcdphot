@@ -183,7 +183,7 @@ def get_bcd_phot(source_list_path):
 	print('created file: '+outfile)
 	# save the list of bad results from IDL to text
 	nan_arr = np.array(nan_lst).astype(np.float)
-	outfile = work_dir+'/nan_list.txt')
+	outfile = work_dir+'/nan_list.txt'
 	np.savetxt(outfile,nan_arr,fmt=['%i']+['%.9f']*4)
 	print('created file: '+outfile)
 	# collapse the gross output to their groupings, i.e. groups of 
