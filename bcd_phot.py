@@ -71,9 +71,9 @@ def get_gross_list(source_list_path,metadata):
 	Loop through the BCD files and get photometry on all associated sources.
 	The result will be a 'gross' list of all the output from bcd_phot.pro.
 	"""
-	proj_dir, work_dir, channel = 	metadata['proj_dir'],\
-									metadata['work_dir'],\
-									metadata['channel']
+	proj_dir, work_dir, channel = metadata['proj_dir'],\
+		metadata['work_dir'],\
+		metadata['channel']
 	# set path to local IDL executable
 	idl = '/usr/admin/local/itt/idl70/bin/idl'
 	sources = json.load(open(source_list_path))
@@ -93,14 +93,27 @@ def get_gross_list(source_list_path,metadata):
 		# np.savetxt(tmp_radec_path,s,fmt='%.9f')
 		np.savetxt(tmp_radec_path,s,fmt=['%i']+['%.9f']*2)
 		# spawn subprocess to get bcd_phot.pro output for the current image
-		cmd = 'echo bcd_phot,"'+bcd_path+'","'+unc_path+'","'+tmp_radec_path+\
-			'",'+channel
-		p1 = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-		p2 = subprocess.Popen([idl], stdin=p1.stdout, stdout=subprocess.PIPE)
+		# cmd = 'echo bcd_phot,"'+bcd_path+'","'+unc_path+'","'+tmp_radec_path+\
+		# 	'",'+channel
+		# p1 = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
+		# p2 = subprocess.Popen([idl, '-quiet'], stdin=p1.stdout, 
+		# 	stdout=subprocess.PIPE)
+		# # or another way:
+		# cmd = idl+ ' -quiet -e \'bcd_phot,'+'"'+bcd_path+\
+		# 	'","'+unc_path+'","'+tmp_radec_path+'",'+channel+"'"
+		# subp = subprocess.Popen(cmd, stderr = subprocess.PIPE,
+		# 	stdout = subprocess.PIPE, shell = True)
+		cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+\
+			tmp_radec_path+'",'+channel
+		returncode = subprocess.call([idl,'-quiet','-e',cmd], 
+			stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 		# get the bcd_phot.pro output as a single string
-		result_str = p2.stdout.read()
+		# result_str = p2.stdout.read()
+		# stdout, stderr = subp.communicate()
+		# result_str = stdout
 		# split the string on newlines
 		result_split = result_str.strip().split('\n')
+		# result_split = result_str.strip('\n').split()
 		# split each line on whitespace and separate lines without NaNs
 		result_lst = [i.split() for i in result_split if 'NaN' not in i]
 		bad_lst = [i.split()[1:] for i in result_split if 'NaN' in i]
@@ -142,12 +155,14 @@ def get_bcd_phot(source_list_path):
 	# save the gross output from IDL to text
 	gross_arr = np.array(gross_lst).astype(np.float)
 	outfile = work_dir+'/gross_arr.txt'
-	np.savetxt(outfile,gross_arr,fmt=['%i']+['%.9f']*6)
+	hdr = 'id ra dec ra_cen dec_cen flux unc'
+	np.savetxt(outfile,gross_arr,fmt=['%i']+['%.9f']*6,header=hdr)
 	print('created file: '+outfile)
 	# save the list of bad results from IDL to text
 	nan_arr = np.array(nan_lst).astype(np.float)
 	outfile = work_dir+'/nan_list.txt'
-	np.savetxt(outfile,nan_arr,fmt=['%i']+['%.9f']*4)
+	hdr = 'id ra_cen dec_cen x_cen y_cen'
+	np.savetxt(outfile,nan_arr,fmt=['%i']+['%.9f']*4,header=hdr))
 	print('created file: '+outfile)
 	# collapse the gross output to their groupings, i.e. groups of 
 	# measurements of the same star

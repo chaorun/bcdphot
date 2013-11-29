@@ -51,6 +51,16 @@ phpadu = GAIN*EXPTIME/FLUXCONV
 ;convert from WCS to pixel coordinates
 adxy,hdr,ra,dec,x,y
 
+;setup for writing results to disk
+sep = strsplit(radeclist,'/')
+work_dir = strmid(radeclist,0,sep[n_elements(sep)-1])
+good_out = work_dir+'good_list.txt'
+bad_out = work_dir+'bad_list.txt'
+get_lun,good
+get_lun,bad
+openw,good,good_out,width=1200,/append
+openw,bad,bad_out,width=1200,/append
+
 ;loop through source pixel coordinates and compute photometry at that location in image
 for i=0,n_elements(x)-1 do begin
 
@@ -61,7 +71,8 @@ for i=0,n_elements(x)-1 do begin
 	box_centroider,img,unc^2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
 
 	;get photometry on centroid
-	aper,img,x0,y0,flux_aper,fluxerr,sky,skyerr,phpadu,apr,skyrad,badpix,/flux,/nan,/exact,/silent,readnoise=RONOISE
+	aper,img,x0,y0,flux_aper,fluxerr,sky,skyerr,phpadu,apr,skyrad,badpix,$
+		/flux,/nan,/exact,/silent,readnoise=RONOISE
 
 	;convert flux and unc from MJy/sr to Jy and apply aperture correction
 	flux_jy = (flux_aper * ap_cor * conv_fac) * 1e-6
@@ -69,21 +80,24 @@ for i=0,n_elements(x)-1 do begin
 
 	;apply pixel phase correction
 	corrected_flux = pixel_phase_correct_gauss(flux_jy,x0,y0,channel,ap_par)
-
-	; ;fix annoying array dimension mismatch
-	; flux = reform(flux)		
-	; fluxerr = reform(fluxerr)	
+	flux_mjy = corrected_flux * 1e3
+	unc_mjy = unc * 1e3
 
 	;calculate RA/Dec of centroids
 	xyad,hdr,x0,y0,ra0,dec0
 
 	;print the data
 	if finite(flux_aper) eq 1 then begin
-		print,strcompress([string(id[i]),string([ra[i],dec[i],ra0,dec0,corrected_flux,unc])])
+		printf,good,strtrim(strcompress([string(id[i]),$
+			string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy])]),1)
 	endif else begin
-		print,strcompress(['NaN',string(id[i]),string([ra0,dec0,x0,y0])])
+		printf,bad,strtrim(strcompress([string(id[i]),$
+			string([ra[i],dec[i],ra0,dec0,x0,y0])]),1)
 	endelse
 
 endfor
-	
+
+close,good
+close,bad
+
 END
