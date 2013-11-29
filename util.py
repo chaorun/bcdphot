@@ -1,5 +1,6 @@
 import os
 import fnmatch
+import numpy as np
 
 def find_files(directory, pattern):
 	"""
@@ -76,4 +77,19 @@ def get_bcd_subset(bcd_dict,aors,ch,hdr):
 	return bcds
 
 def unzip(list):
+	"""
+	The inverse of zip()
+	"""
 	return zip(*list)
+
+def discrete_hist(x):
+	"""
+	Histogram generator for discrete valued list input: yields value, count
+	i.e. 
+	for value, count in discrete_hist(x):
+		print "{}: {}".format(value,count)
+	"""
+	s = set(x)
+	arr = np.array(x)
+	for i in s:
+		yield i, np.sum(arr==i)

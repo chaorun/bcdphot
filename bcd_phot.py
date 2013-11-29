@@ -102,67 +102,29 @@ def get_gross_list(source_list_path,metadata):
 		# split the string on newlines
 		result_split = result_str.strip().split('\n')
 		# split each line on whitespace and separate lines without NaNs
-		# result_lst, bad_lst = [], []
-		# for i in result_split:
-		# 	if 'NaN' in i:
-		# 		bad_lst.append(i.split())
-		# 	else:
-		# 		result_lst.append(i.split())
-		# append the result list to the gross list
 		result_lst = [i.split() for i in result_split if 'NaN' not in i]
 		bad_lst = [i.split()[1:] for i in result_split if 'NaN' in i]
+		# append the result list to the gross list
 		gross_lst += result_lst
 		nan_lst += bad_lst
 	return gross_lst, nan_lst
-
-# def get_phot_groups(gross_arr):
-# 	""" 
-# 	Uses a k-d tree to get groupings of measurements from gross array.
-# 	A tolerance of 1 arcsec is the criterion for group membership used
-# 	to produce the 'net' list, which contains arrays of the groups.
-# 	"""
-# 	# construct the k-d tree from the sources' cartesian coordinates
-# 	ra, dec = gross_arr[:,0],gross_arr[:,1]
-# 	coords = radec_to_coords(ra, dec)
-# 	kdt = KDT(coords)
-# 	# set tolerance to 1 arcsec (in degrees)
-# 	tol = 1/3600.
-# 	# list to store the groups of bcd_phot.pro output
-# 	phot_groups = []
-# 	# list to store the hashes of each sorted group array
-# 	hashes = []
-# 	for i in range(gross_arr.shape[0]):
-# 		# get the ith pair of RA/Dec to search the k-d tree with
-# 		rai, deci = gross_arr[i,0],gross_arr[i,1]
-# 		# search the tree
-# 		idx = get_k_closest_idx(rai,deci,kdt,k=10)
-# 		# compute distances of query result RA/Dec to search RA/Dec
-# 		ds = great_circle_distance(rai, deci, ra[idx], dec[idx])
-# 		# mask out the query results more distant than the tolerance
-# 		msk = ds < tol
-# 		idx = idx[msk]
-# 		# sort the index array so order is preserved in each query result
-# 		#	(this allows the hashing trick to work)
-# 		idx.sort()
-# 		# compute hash of string reprentation of result array (fastest)
-# 		h = hash(gross_arr[idx,:].tostring())
-# 		# only keep the results (measurement groupings) we haven't seen already
-# 		if h not in hashes:
-# 			hashes.append(h)
-# 			phot_groups.append(gross_arr[idx,:])
-# 	phot_groups_lists = [i.tolist() for i in phot_groups]
-# 	phot_groups_dict = dict(zip(hashes,phot_groups_lists))
-# 	return phot_groups_dict
 
 def get_phot_groups(gross_arr):
 	"""
 	Use source ID numbers to collect photometry results of the same source
 	into groups.
 	"""
-	# idnum,ra,dec,ra0,dec0,corrected_flux,unc
-	phot_groups_dict = {}
-	for key, group in groupby(gross_arr, lambda x: x[0]):
-		phot_groups_dict[key] = [i for i in group]
+	# convert input array to list sorted by value of 'id' key of its elements
+	gross_lst_dct = sorted([{'id': int(i[0]), 'data': i[1:].tolist()} 
+		for i in gross_arr], key = lambda x: x['id'])
+	
+	# phot_groups_dict = {}
+	# for key, group in groupby(gross_lst_dct, lambda x: x['id']):
+	# 	phot_groups_dict[key] = [i['data'] for i in group]
+
+	# use a dict comprehension instead
+	phot_groups_dict = { key: [i['data'] for i in group] for 
+		key, group in groupby(gross_lst_dct, lambda x: x['id']) }
 	return phot_groups_dict
 
 def get_bcd_phot(source_list_path):
