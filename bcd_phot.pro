@@ -61,7 +61,7 @@ get_lun,bad
 openw,good,good_out,width=1200,/append
 openw,bad,bad_out,width=1200,/append
 
-;loop through source pixel coordinates and compute photometry at that location in image
+;loop through source pixel coordinates and do photometry at that location in image
 for i=0,n_elements(x)-1 do begin
 
 	;check to make sure the pixel coordinates are finite, skip source if not
