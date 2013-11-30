@@ -91,7 +91,7 @@ def get_photometry_idl(source_list_path):
 	for key in sources.keys():
 		# keys are the BCD filenames
 		bcd_path = bcd_dict[key]
-		print(bcd_path)
+		# print(bcd_path)
 		unc_key = key.replace('_cbcd.fits','_cbunc.fits')
 		unc_path = unc_dict[unc_key]
 		# item for key is the list of ID/RA/Dec of sources in the image
