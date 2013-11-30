@@ -33,7 +33,7 @@ if channel eq 1 then ap_cor = ap_cor_ch1
 if channel eq 2 then ap_cor = ap_cor_ch2
 
 ;read in list of RA/Dec for sources to be measured in fitsfile image
-readcol,radeclist,id,ra,dec,format='I,D,D'
+readcol,radeclist,id,ra,dec,format='L,D,D'
 
 ;read in fits image and header
 img = readfits(cbcdfile,hdr,/silent)
