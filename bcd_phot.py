@@ -66,24 +66,32 @@ def radec_to_coords(ra, dec):
 	coords[:, 2] = z
 	return coords	
 
-def get_gross_list(source_list_path,metadata):
+def get_photometry_idl(source_list_path):
 	"""
 	Loop through the BCD files and get photometry on all associated sources.
-	The result will be a 'gross' list of all the output from bcd_phot.pro.
+	Returns arrays containing the output from bcd_phot.pro.
 	"""
-	proj_dir, work_dir, channel = metadata['proj_dir'],\
-		metadata['work_dir'],\
-		metadata['channel']
+	work_dir = source_list_path.split('/source_list.json')[0]
+	# read metadata for the working directory
+	metadata = json.load(open(work_dir+'/metadata.json'))	
+	channel = metadata['channel']
 	# set path to local IDL executable
 	idl = '/usr/admin/local/itt/idl70/bin/idl'
 	sources = json.load(open(source_list_path))
 	bcd_dict = json.load(open(metadata['bcd_dict_path']))
 	unc_dict = json.load(open(metadata['unc_dict_path']))
+	# initialize photometry output files with column names
+	good_hdr = '# id ra dec ra_cen dec_cen x_cen y_cen flux_mjy unc_mjy'
+	bad_hdr = '# id ra dec ra_cen dec_cen x_cen y_cen'
+	with open(work_dir+'/good_list.txt','w') as g:
+		g.write(good_hdr+'\n')
+	with open(work_dir+'/bad_list.txt','w') as b:
+		b.write(bad_hdr+'\n')
 	# loop through the BCDs in the source list and get photometry
-	gross_lst, nan_lst = [], []
 	for key in sources.keys():
 		# keys are the BCD filenames
 		bcd_path = bcd_dict[key]
+		print(bcd_path)
 		unc_key = key.replace('_cbcd.fits','_cbunc.fits')
 		unc_path = unc_dict[unc_key]
 		# item for key is the list of ID/RA/Dec of sources in the image
@@ -93,34 +101,16 @@ def get_gross_list(source_list_path,metadata):
 		# np.savetxt(tmp_radec_path,s,fmt='%.9f')
 		np.savetxt(tmp_radec_path,s,fmt=['%i']+['%.9f']*2)
 		# spawn subprocess to get bcd_phot.pro output for the current image
-		# cmd = 'echo bcd_phot,"'+bcd_path+'","'+unc_path+'","'+tmp_radec_path+\
-		# 	'",'+channel
-		# p1 = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-		# p2 = subprocess.Popen([idl, '-quiet'], stdin=p1.stdout, 
-		# 	stdout=subprocess.PIPE)
-		# # or another way:
-		# cmd = idl+ ' -quiet -e \'bcd_phot,'+'"'+bcd_path+\
-		# 	'","'+unc_path+'","'+tmp_radec_path+'",'+channel+"'"
-		# subp = subprocess.Popen(cmd, stderr = subprocess.PIPE,
-		# 	stdout = subprocess.PIPE, shell = True)
 		cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+\
 			tmp_radec_path+'",'+channel
 		returncode = subprocess.call([idl,'-quiet','-e',cmd], 
 			stderr = subprocess.PIPE, stdout = subprocess.PIPE)
-		# get the bcd_phot.pro output as a single string
-		# result_str = p2.stdout.read()
-		# stdout, stderr = subp.communicate()
-		# result_str = stdout
-		# split the string on newlines
-		result_split = result_str.strip().split('\n')
-		# result_split = result_str.strip('\n').split()
-		# split each line on whitespace and separate lines without NaNs
-		result_lst = [i.split() for i in result_split if 'NaN' not in i]
-		bad_lst = [i.split()[1:] for i in result_split if 'NaN' in i]
-		# append the result list to the gross list
-		gross_lst += result_lst
-		nan_lst += bad_lst
-	return gross_lst, nan_lst
+	# read the results of bcd_phot.pro
+	print('created file: '+work_dir+'/good_list.txt')
+	print('created file: '+work_dir+'/bad_list.txt')
+	good_arr = np.loadtxt(work_dir+'/good_list.txt')
+	bad_arr = np.loadtxt(work_dir+'/bad_list.txt')
+	return good_arr, bad_arr
 
 def get_phot_groups(gross_arr):
 	"""
@@ -130,12 +120,7 @@ def get_phot_groups(gross_arr):
 	# convert input array to list sorted by value of 'id' key of its elements
 	gross_lst_dct = sorted([{'id': int(i[0]), 'data': i[1:].tolist()} 
 		for i in gross_arr], key = lambda x: x['id'])
-	
-	# phot_groups_dict = {}
-	# for key, group in groupby(gross_lst_dct, lambda x: x['id']):
-	# 	phot_groups_dict[key] = [i['data'] for i in group]
-
-	# use a dict comprehension instead
+	# use a dict comprehension with groupby to get photometry groups
 	phot_groups_dict = { key: [i['data'] for i in group] for 
 		key, group in groupby(gross_lst_dct, lambda x: x['id']) }
 	return phot_groups_dict
@@ -143,34 +128,27 @@ def get_phot_groups(gross_arr):
 def get_bcd_phot(source_list_path):
 	"""
 	Reads the output of map_bcd_sources() 'source_list.json' and 
-	calls the functions get_gross_list() and get_phot_groups(),
+	calls the functions get_photometry_idl() and get_phot_groups(),
 	which in turn get photometry from IDL subprocesses and process
 	the output.
 	"""
 	work_dir = source_list_path.split('/source_list.json')[0]
-	# read metadata for the working directory
-	metadata = json.load(open(work_dir+'/metadata.json'))
-	# call get_gross_list() with output of map_bcd_sources() and metadata
-	gross_lst, nan_lst = get_gross_list(source_list_path,metadata)
-	# save the gross output from IDL to text
-	gross_arr = np.array(gross_lst).astype(np.float)
-	outfile = work_dir+'/gross_arr.txt'
-	hdr = 'id ra dec ra_cen dec_cen flux unc'
-	np.savetxt(outfile,gross_arr,fmt=['%i']+['%.9f']*6,header=hdr)
-	print('created file: '+outfile)
-	# save the list of bad results from IDL to text
-	nan_arr = np.array(nan_lst).astype(np.float)
-	outfile = work_dir+'/nan_list.txt'
-	hdr = 'id ra_cen dec_cen x_cen y_cen'
-	np.savetxt(outfile,nan_arr,fmt=['%i']+['%.9f']*4,header=hdr))
-	print('created file: '+outfile)
-	# collapse the gross output to their groupings, i.e. groups of 
+	# call get_photometry_idl() with output of map_bcd_sources()
+	good_arr, bad_arr = get_photometry_idl(source_list_path)
+	# collapse the output to their groupings, i.e. groups of 
 	# measurements of the same star
-	phot_groups_dict = get_phot_groups(gross_arr)
+	phot_groups_dict = get_phot_groups(good_arr)
 	outfile = work_dir+'/phot_groups.json'
 	with open(outfile,'w') as w:
 		json.dump(phot_groups_dict,w,indent=4*' ')
 	print('created file: '+outfile)
+	# do the same for the failed measurements
+	fail_groups_dict = get_phot_groups(bad_arr)
+	outfile = work_dir+'/fail_groups.json'
+	with open(outfile,'w') as w:
+		json.dump(fail_groups_dict,w,indent=4*' ')
+	print('created file: '+outfile)
+
 
 def collapse_groups(phot_groups_dict):
 	"""
