@@ -161,7 +161,7 @@ def collapse_groups(phot_groups_dict):
 		group = np.array(value)
 		col_means = np.mean(group,0)
 		# take the mean RA, Dec, and flux
-		ra, dec = col_means[:2]
+		ra, dec = col_means[2:4]
 		flux = col_means[6]
 		# sum the uncertainties in quadrature
 		unc = np.sqrt(np.sum(group[:,7]**2))
