@@ -199,9 +199,10 @@ def save_single_channel(phot_groups_mean_path):
 	out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
 		'catalog.txt'])
 	out_path = '/'.join([work_dir,out_name])
-	header = 'ra dec flux unc n_obs'
+	header = 'id ra dec flux unc n_obs'
 	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
 	np.savetxt(out_path, catalog, fmt = fmt, header = header)
+	print("created file: "+out_path)
 
 def spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.):
 	"""
