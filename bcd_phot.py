@@ -112,17 +112,17 @@ def get_photometry_idl(source_list_path):
 	bad_arr = np.loadtxt(work_dir+'/bad_list.txt')
 	return good_arr, bad_arr
 
-def get_phot_groups(gross_arr):
+def get_phot_groups(good_arr):
 	"""
 	Use source ID numbers to collect photometry results of the same source
 	into groups.
 	"""
 	# convert input array to list sorted by value of 'id' key of its elements
-	gross_lst_dct = sorted([{'id': int(i[0]), 'data': i[1:].tolist()} 
-		for i in gross_arr], key = lambda x: x['id'])
+	good_lst_dct = sorted([{'id': int(i[0]), 'data': i[1:].tolist()} 
+		for i in good_arr], key = lambda x: x['id'])
 	# use a dict comprehension with groupby to get photometry groups
 	phot_groups_dict = { key: [i['data'] for i in group] for 
-		key, group in groupby(gross_lst_dct, lambda x: x['id']) }
+		key, group in groupby(good_lst_dct, lambda x: x['id']) }
 	return phot_groups_dict
 
 def get_bcd_phot(source_list_path):
@@ -157,15 +157,15 @@ def collapse_groups(phot_groups_dict):
 	then returns a list of groups and their calculations.
 	"""
 	lst = []
-	for value in phot_groups_dict.values():
+	for key, value in phot_groups_dict.items():
 		group = np.array(value)
 		col_means = np.mean(group,0)
 		# take the mean RA, Dec, and flux
 		ra, dec = col_means[:2]
-		flux = col_means[4]
+		flux = col_means[6]
 		# sum the uncertainties in quadrature
-		unc = np.sqrt(np.sum(group[:,5]**2))
-		d = dict(ra=ra,dec=dec,flux=flux,unc=unc,group=group.tolist())
+		unc = np.sqrt(np.sum(group[:,7]**2))
+		d = dict(id=key,ra=ra,dec=dec,flux=flux,unc=unc,group=value)
 		lst.append(d)
 	return lst
 
@@ -187,18 +187,20 @@ def save_single_channel(phot_groups_mean_path):
 	and saves to disk.
 	"""
 	ch = json.load(open(phot_groups_mean_path))
+	idnum = np.array([i['id'] for i in ch])
 	ra = np.array([i['ra'] for i in ch])
 	dec = np.array([i['dec'] for i in ch])
 	flux = np.array([i['flux'] for i in ch])
 	unc = np.array([i['unc'] for i in ch])
 	n_obs = np.array([len(i['group']) for i in ch])
-	catalog = np.c_[ra,dec,flux,unc,n_obs]
+	catalog = np.c_[idnum,ra,dec,flux,unc,n_obs]
 	work_dir = phot_groups_mean_path.split('/phot_groups_mean.json')[0]
 	meta = json.load(open(work_dir+'/metadata.json'))
-	out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],'catalog.txt'])
+	out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
+		'catalog.txt'])
 	out_path = '/'.join([work_dir,out_name])
 	header = 'ra dec flux unc n_obs'
-	fmt = ['%0.8f']*2+['%.4e']*2+['%i']
+	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
 	np.savetxt(out_path, catalog, fmt = fmt, header = header)
 
 def spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.):
