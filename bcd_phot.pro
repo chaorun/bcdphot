@@ -13,8 +13,6 @@ PRO bcd_phot,cbcdfile,cbuncfile,radeclist,channel
 ;	11/27/13 -- now supports new input format containing ID field per source
 
 ;aper.pro setup
-;phpadu = 1          ;now using the correct value calculated from the header info
-;apr = 2				;using BCDs so pixscale is native 1.2"/pix
 apr = 3				;using BCDs so pixscale is native 1.2"/pix
 skyrad = [12,20]
 badpix = [0,0]
@@ -23,8 +21,6 @@ badpix = [0,0]
 ap_par = '3_12_20'
 
 ;conversion factors
-;ap_cor_ch1 = 1.205			;ch1 aperture correction 2 pix radius, 12-20 pix annulus
-;ap_cor_ch2 = 1.221			;ch2 aperture correction 2 pix radius, 12-20 pix annulus
 ap_cor_ch1 = 1.112			;ch1 aperture correction 3 pix radius, 12-20 pix annulus
 ap_cor_ch2 = 1.113			;ch2 aperture correction 3 pix radius, 12-20 pix annulus
 conv_fac = 33.847732		;MJy/sr --> uJy for native 1.2"/pix
@@ -61,7 +57,7 @@ get_lun,bad
 openw,good,good_out,width=1200,/append
 openw,bad,bad_out,width=1200,/append
 
-;loop through source pixel coordinates and DESCRIPTION photometry at that location in image
+;loop through source pixel coordinates and do photometry at that location in image
 for i=0,n_elements(x)-1 do begin
 
 	;check to make sure the pixel coordinates are finite, skip source if not
