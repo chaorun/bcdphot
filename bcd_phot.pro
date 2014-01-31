@@ -23,7 +23,9 @@ ap_par = '3_12_20'
 ;conversion factors
 ap_cor_ch1 = 1.112			;ch1 aperture correction 3 pix radius, 12-20 pix annulus
 ap_cor_ch2 = 1.113			;ch2 aperture correction 3 pix radius, 12-20 pix annulus
-conv_fac = 33.847732		;MJy/sr --> uJy for native 1.2"/pix
+; conv_fac = 33.847732		;MJy/sr --> uJy for native 1.2"/pix
+; conv_fac = 35.17421909111017		;MJy/sr --> uJy for native 1.2233"/pix
+conv_fac = 35.174234		;MJy/sr --> uJy for native 1.2233"/pix
 
 if channel eq 1 then ap_cor = ap_cor_ch1
 if channel eq 2 then ap_cor = ap_cor_ch2
