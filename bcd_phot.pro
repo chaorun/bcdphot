@@ -87,7 +87,7 @@ for i=0,n_elements(x)-1 do begin
 	;print the data
 	if finite(flux_aper) eq 1 then begin
 		printf,good,strtrim(strcompress([string(id[i]),$
-			string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy])]),1)
+			string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy,flux_jy*1e3])]),1)
 	endif else begin
 		printf,bad,strtrim(strcompress([string(id[i]),$
 			string([ra[i],dec[i],ra0,dec0,x0,y0])]),1)

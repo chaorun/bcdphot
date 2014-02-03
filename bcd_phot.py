@@ -81,7 +81,8 @@ def get_photometry_idl(source_list_path):
 	bcd_dict = json.load(open(metadata['bcd_dict_path']))
 	unc_dict = json.load(open(metadata['unc_dict_path']))
 	# initialize photometry output files with column names
-	good_hdr = '# id ra dec ra_cen dec_cen x_cen y_cen flux_mjy unc_mjy'
+	good_hdr = '# id ra dec ra_cen dec_cen x_cen y_cen flux_mjy unc_mjy '+\
+		'flux_mjy_uncorrected'
 	bad_hdr = '# id ra dec ra_cen dec_cen x_cen y_cen'
 	with open(work_dir+'/good_list.txt','w') as g:
 		g.write(good_hdr+'\n')
@@ -163,9 +164,11 @@ def collapse_groups(phot_groups_dict):
 		# take the mean RA, Dec, and flux
 		ra, dec = col_means[2:4]
 		flux = col_means[6]
+		flux_uncorrected = col_means[8]
 		# sum the uncertainties in quadrature
 		unc = np.sqrt(np.sum(group[:,7]**2))
-		d = dict(id=key,ra=ra,dec=dec,flux=flux,unc=unc,group=value)
+		d = dict(id=key,ra=ra,dec=dec,flux=flux,unc=unc,group=value,
+			flux_uncorrected=flux_uncorrected)
 		lst.append(d)
 	return lst
 
@@ -191,16 +194,17 @@ def save_single_channel(phot_groups_mean_path):
 	ra = np.array( [ float(i['ra']) for i in ch ] )
 	dec = np.array( [ float(i['dec']) for i in ch ] )
 	flux = np.array( [ float(i['flux']) for i in ch ] )
+	flux_uncorrected = np.array( [ float(i['flux_uncorrected']) for i in ch ] )
 	unc = np.array( [ float(i['unc']) for i in ch ] )
 	n_obs = np.array( [ len(i['group']) for i in ch ] )
-	catalog = np.c_[idnum,ra,dec,flux,unc,n_obs]
+	catalog = np.c_[idnum,ra,dec,flux,unc,flux_uncorrected,n_obs]
 	work_dir = phot_groups_mean_path.split('/phot_groups_mean.json')[0]
 	meta = json.load(open(work_dir+'/metadata.json'))
 	out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
 		'catalog.txt'])
 	out_path = '/'.join([work_dir,out_name])
-	header = 'id ra dec flux unc n_obs'
-	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
+	header = 'id ra dec flux unc flux_uncor n_obs'
+	fmt = ['%i']+['%0.8f']*2+['%.4e']*3+['%i']
 	idx = np.argsort(catalog[:,0])
 	np.savetxt(out_path, catalog[idx], fmt = fmt, header = header)
 	print("created file: "+out_path)
@@ -248,7 +252,9 @@ def apply_array_location_correction(args_list):
 	idx1, idx2, ds = spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.)
 	ch1, ch2 = ch1[idx1], ch2[idx2]
 	# get indices for the blue sources
-	f1, f2 = [i['flux'] for i in ch1], [i['flux'] for i in ch2]
+	# f1, f2 = [i['flux'] for i in ch1], [i['flux'] for i in ch2]
+	f1, f2 = [i['flux_uncorrected'] for i in ch1], 
+		[i['flux_uncorrected'] for i in ch2]
 	blue = np.array(f1, copy=False) > np.array(f2, copy=False)
 	# now loop through the matched sources and apply corrections
 	catalog = []

@@ -64,13 +64,13 @@ def radec_to_coords(ra, dec):
 def get_bcd_list(metadata):
 	"""
 	Metadata is a dict with keys:
-		name, radecfile, proj_dir, out_dir, work_dir, aors, channel, hdr
+		name, radecfile, proj_dir, out_dir, work_dir, aors, channel,
+		bcd_dict_path
 	"""
 
-	radecfile, work_dir, aors, hdr =	metadata['radecfile'],\
-										metadata['work_dir'],\
-										metadata['aors'],\
-										metadata['hdr']
+	radecfile, work_dir, aors =	metadata['radecfile'],\
+								metadata['work_dir'],\
+								metadata['aors'],\
 
 	# split the RA/Dec into two arrays
 	radec = np.genfromtxt(radecfile)
