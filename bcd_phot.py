@@ -253,8 +253,7 @@ def apply_array_location_correction(args_list):
 	ch1, ch2 = ch1[idx1], ch2[idx2]
 	# get indices for the blue sources
 	# f1, f2 = [i['flux'] for i in ch1], [i['flux'] for i in ch2]
-	f1, f2 = [i['flux_uncorrected'] for i in ch1], 
-		[i['flux_uncorrected'] for i in ch2]
+	f1, f2 = [i['flux_uncorrected'] for i in ch1], [i['flux_uncorrected'] for i in ch2]
 	blue = np.array(f1, copy=False) > np.array(f2, copy=False)
 	# now loop through the matched sources and apply corrections
 	catalog = []
