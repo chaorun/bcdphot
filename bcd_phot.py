@@ -73,7 +73,7 @@ def get_photometry_idl(source_list_path):
 	"""
 	work_dir = source_list_path.split('/source_list.json')[0]
 	# read metadata for the working directory
-	metadata = json.load(open(work_dir+'/metadata.json'))	
+	metadata = json.load(open(work_dir+'/metadata.json'))
 	channel = metadata['channel']
 	# set path to local IDL executable
 	idl = '/usr/admin/local/itt/idl70/bin/idl'
@@ -93,7 +93,7 @@ def get_photometry_idl(source_list_path):
 		# keys are the BCD filenames
 		bcd_path = bcd_dict[key]
 		# print(bcd_path)
-		unc_key = key.replace('_cbcd.fits','_cbunc.fits')
+		unc_key = key.replace('bcd.fits','bunc.fits')
 		unc_path = unc_dict[unc_key]
 		# item for key is the list of ID/RA/Dec of sources in the image
 		s = sources[key]
