@@ -158,29 +158,5 @@ if __name__ == "__main__":
 	# now apply the array location dependent correction
 	print('applying array location correction...')
 	filepaths = [i for i in find_files(out_dir,'phot_groups_mean.json')]
-	ch1, ch2, out_paths = [], [], []
-	for i in range(len(filepaths)):
-		work_dir = filepaths[i].split('/phot_groups_mean.json')[0]
-		metadata = json.load(open(work_dir+'/metadata.json'))
-		channel = metadata['channel']
-		if channel == '1':
-			ch1.append(filepaths[i])
-		elif channel == '2':
-			ch2.append(filepaths[i])
-	# make sure the ith elements of ch1 and ch2 are for the same region/exptime
-	ch1.sort()
-	ch2.sort()
-	# construct file paths for matched ch1/ch2 catalogs
-	for i in range(len(ch1)):
-		work_dir = ch1[i].split('/phot_groups_mean.json')[0]
-		metadata = json.load(open(work_dir+'/metadata.json'))
-		out_dir = '/'.join( [ metadata['out_dir'], metadata['name'] ] )
-		spl1 = ch1[i].split('bcdphot_out/')[1].split('/')
-		spl2 = ch2[i].split('bcdphot_out/')[1].split('/')
-		if spl1[0] != spl2[0] or spl1[2] != spl2[2]:
-			print('error: ch1/ch2 catalogs don\'t match')
-		else:
-			out_name = '_'.join([spl1[0],spl1[2],'matched_catalog.txt'])
-			out_paths.append('/'.join([out_dir,out_name]))
-	args_list = zip(ch1, ch2, out_paths)
+	args_list = array_location_setup(filepaths)
 	pool.map(apply_array_location_correction,args_list)
