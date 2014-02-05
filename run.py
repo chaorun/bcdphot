@@ -49,8 +49,8 @@ if __name__ == "__main__":
 
 	# this is the master project directory containing the data, input file,
 	# and subdirectory containing the RA/Dec source list files
-	proj_dir = params['proj_dir'].rstrip('/')
-	print('project directory: '+proj_dir)
+	data_dir = params['data_dir'].rstrip('/')
+	print('data directory: '+data_dir
 
 	# this is the name of the output dir for pipeline output and temp files
 	out_dir = params['out_dir'].rstrip('/')
@@ -58,13 +58,13 @@ if __name__ == "__main__":
 	print('output directory: '+out_dir)
 
 	# create a dictionary with BCD filenames as the keys, full paths as values
-	print('creating setup files in project directory...')
-	bcd_paths = [i for i in find_files(proj_dir,bcd_suffix)]
+	print('creating setup files in output directory...')
+	bcd_paths = [i for i in find_files(data_dir,bcd_suffix)]
 	bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
 	with open(out_dir+'/bcd_dict.json','w') as w:
 		json.dump(bcd_dict,w,indent=' '*4)
 	# do the same for UNC files
-	unc_paths = [i for i in find_files(proj_dir,unc_suffix)]
+	unc_paths = [i for i in find_files(data_dir,unc_suffix)]
 	unc_dict = {i.split('/')[-1]:i for i in unc_paths}
 	with open(out_dir+'/unc_dict.json','w') as w:
 		json.dump(unc_dict,w,indent=' '*4)
@@ -76,7 +76,7 @@ if __name__ == "__main__":
 	for region in regions:
 
 		name = region['name']
-		radecfiles = ['/'.join([proj_dir,i]) for i in region['radec']]
+		radecfiles = region['radec']
 		aors = region['aors']
 
 		for radecfile in radecfiles:
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 				json.dump(unc_dict_subset,w,indent=' '*4)
 			print('created: '+unc_dict_path)
 
-			metadata = {'name':name, 'proj_dir':proj_dir, 'work_dir':work_dir,
+			metadata = {'name':name, 'data_dir':data_dir, 'work_dir':work_dir,
 				'out_dir':out_dir, 'radecfile':radecfile,
 				'bcd_dict_path':bcd_dict_path, 'unc_dict_path':unc_dict_path,
 				'aors':aors, 'channel':ch}

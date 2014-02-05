@@ -64,7 +64,7 @@ def radec_to_coords(ra, dec):
 def get_bcd_list(metadata):
 	"""
 	Metadata is a dict with keys:
-		name, radecfile, proj_dir, out_dir, work_dir, aors, channel,
+		name, radecfile, data_dir, out_dir, work_dir, aors, channel,
 		bcd_dict_path
 	"""
 
@@ -107,24 +107,29 @@ def get_bcd_list(metadata):
 	max_num_images = 0
 	sources = []
 	for i in range(len(ra)):
+
 		# create internal source ID and associate with each RA/Dec pair
 		d = {'id':i, 'ra':ra[i], 'dec':dec[i]}
 		print('finding files associated with source '+str(i+1)+\
 			' at '+str(ra[i])+', '+str(dec[i]))
+
 		# get the subset of BCDs to search
 		idx = get_k_closest_bcd_idx(ra[i], dec[i], kdt, k=10)
 		n_files = filepaths[idx].size
 		filepaths_subset = filepaths[idx]
 		filenames_subset = filenames[idx]
 		argslist = zip([ra[i]]*n_files, [dec[i]]*n_files, filepaths_subset)
+
 		# send jobs to the pool
 		results = pool.map(source_in_image,argslist)
+
 		# unzip the results and extract the boolean array and pixel coordinates
 		results_unzipped = unzip(results)
 		bool_arr = np.array(results_unzipped[0])
 		x = results_unzipped[1]
 		y = results_unzipped[2]
 		pix_coord = np.array(zip(x,y))[bool_arr].tolist()
+
 		# get the names of the files associated with the source
 		good_bcds = filenames_subset[bool_arr].tolist()
 		num_images = len(good_bcds)
@@ -139,6 +144,7 @@ def get_bcd_list(metadata):
 	outfilepath = '/'.join([work_dir,outfile])
 	with open(outfilepath,'w') as w:
 		json.dump(sources,w,indent=4*' ')
+
 	print('created file: '+outfilepath)
 	print('maximum number of images associated with a source: '+\
 		str(max_num_images))
