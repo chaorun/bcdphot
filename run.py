@@ -13,7 +13,7 @@ from bcd_phot import get_bcd_phot
 from bcd_phot import write_mean_groups
 from bcd_phot import save_single_channel
 from bcd_phot import apply_array_location_correction
-
+from bcd_phot import array_location_setup
 
 if __name__ == "__main__":
 

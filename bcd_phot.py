@@ -64,7 +64,7 @@ def radec_to_coords(ra, dec):
 	coords[:, 0] = x
 	coords[:, 1] = y
 	coords[:, 2] = z
-	return coords	
+	return coords
 
 def get_photometry_idl(source_list_path):
 	"""
@@ -255,8 +255,8 @@ def apply_array_location_correction(args_list):
 	idx1, idx2, ds = spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.)
 	ch1, ch2 = ch1[idx1], ch2[idx2]
 	# get indices for the blue sources
-	# f1, f2 = [i['flux'] for i in ch1], [i['flux'] for i in ch2]
-	f1, f2 = [i['flux_uncorrected'] for i in ch1], [i['flux_uncorrected'] for i in ch2]
+	f1, f2 = [i['flux'] for i in ch1], [i['flux'] for i in ch2]
+	# f1, f2 = [i['flux_uncorrected'] for i in ch1], [i['flux_uncorrected'] for i in ch2]
 	blue = np.array(f1, copy=False) > np.array(f2, copy=False)
 	# now loop through the matched sources and apply corrections
 	catalog = []
@@ -268,17 +268,19 @@ def apply_array_location_correction(args_list):
 		is_blue = blue[i]
 		if is_blue:
 			group1 = np.array(ch1[i]['group'])
-			coord1 = zip(group1[:,2], group1[:,3])
+			coord1 = zip(group1[:,4], group1[:,5])
 			group2 = np.array(ch2[i]['group'])
-			coord2 = zip(group2[:,2], group2[:,3])
+			coord2 = zip(group2[:,4], group2[:,5])
 			for j in range(len(coord1)):
 				x, y = [int(round(k)) for k in coord1[j]]
-				group1[j,4] *= arrloc1[x,y]
+				group1[j,6:] *= arrloc1[x,y]
 			for j in range(len(coord2)):
 				x, y = [int(round(k)) for k in coord2[j]]
-				group2[j,4] *= arrloc2[x,y]
-			flux1 = np.mean(group1[:,4])
-			flux2 = np.mean(group2[:,4])
+				group2[j,6:] *= arrloc2[x,y]
+			flux1 = np.mean(group1[:,6])
+			flux2 = np.mean(group2[:,6])
+			unc1 = np.mean(group1[:,7])
+			unc2 = np.mean(group2[:,7])
 		else:
 			flux1 = ch1[i]['flux']
 			flux2 = ch2[i]['flux']
