@@ -50,7 +50,7 @@ if __name__ == "__main__":
 	# this is the master project directory containing the data, input file,
 	# and subdirectory containing the RA/Dec source list files
 	data_dir = params['data_dir'].rstrip('/')
-	print('data directory: '+data_dir
+	print('data directory: '+data_dir)
 
 	# this is the name of the output dir for pipeline output and temp files
 	out_dir = params['out_dir'].rstrip('/')
