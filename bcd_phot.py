@@ -313,7 +313,11 @@ def array_location_setup(filepaths):
 		out_dir = '/'.join( [ metadata['out_dir'], metadata['name'] ] )
 		assert meta1['name'] == meta2['name'] 
 		assert meta1['channel'] == meta2['channel']
-		assert meta1['hdr'] == meta2['hdr']
-		out_name = '_'.join([meta1['name'],meta1['hdr'],'matched_catalog.txt'])
+		if 'hdr' in meta1.keys():
+			assert meta1['hdr'] == meta2['hdr']
+			out_name = '_'.join([meta1['name'],meta1['hdr'],
+				'matched_catalog.txt'])
+		else:
+			out_name = '_'.join([meta1['name'],'matched_catalog.txt'])
 		out_paths.append('/'.join([out_dir,out_name]))
 	return zip(ch1, ch2, out_paths)
