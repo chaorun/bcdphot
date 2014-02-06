@@ -76,7 +76,7 @@ def get_photometry_idl(source_list_path):
 	metadata = json.load(open(work_dir+'/metadata.json'))
 	channel = metadata['channel']
 	# set path to local IDL executable
-	idl = '/usr/admin/local/itt/idl70/bin/idl'
+	idl = metadata['idl_path']
 	sources = json.load(open(source_list_path))
 	bcd_dict = json.load(open(metadata['bcd_dict_path']))
 	unc_dict = json.load(open(metadata['unc_dict_path']))

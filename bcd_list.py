@@ -65,12 +65,13 @@ def get_bcd_list(metadata):
 	"""
 	Metadata is a dict with keys:
 		name, radecfile, data_dir, out_dir, work_dir, aors, channel,
-		bcd_dict_path
+		bcd_dict_path, max_cov
 	"""
 
-	radecfile, work_dir, aors =	metadata['radecfile'],\
-								metadata['work_dir'],\
-								metadata['aors'],\
+	radecfile =	metadata['radecfile']
+	work_dir = metadata['work_dir']
+	aors = metadata['aors']
+	max_cov = metadata['max_cov']
 
 	# split the RA/Dec into two arrays
 	radec = np.genfromtxt(radecfile)
@@ -114,7 +115,7 @@ def get_bcd_list(metadata):
 			' at '+str(ra[i])+', '+str(dec[i]))
 
 		# get the subset of BCDs to search
-		idx = get_k_closest_bcd_idx(ra[i], dec[i], kdt, k=10)
+		idx = get_k_closest_bcd_idx(ra[i], dec[i], kdt, k=max_cov)
 		n_files = filepaths[idx].size
 		filepaths_subset = filepaths[idx]
 		filenames_subset = filenames[idx]

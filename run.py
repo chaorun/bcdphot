@@ -6,6 +6,7 @@ import glob
 import multiprocessing
 import simplejson as json
 import yaml
+
 from util import find_files, mkdirs, get_bcd_subset
 from bcd_list import get_bcd_list
 from bcd_sources import map_bcd_sources
@@ -22,7 +23,7 @@ if __name__ == "__main__":
 	pool = multiprocessing.Pool(processes=ncpus)
 	print "using %i CPUs" % ncpus
 
-	# this is the YAML setup file containing the list of dicts, where
+	# read in the YAML setup file containing the list of dicts, where
 	# each dict corresponds to a region and contains the AOR numbers
 	# and filepaths containing the list of RA/Dec for that region, as well
 	# as some parameters such as whether or not the data are HDR mode, and
@@ -46,6 +47,17 @@ if __name__ == "__main__":
 	# check to see whether the data are HDR mode or not. if they are then
 	# there will be additional directory structure in the output directory.
 	is_hdr = params['hdr']
+
+	# get the path to the IDL executable from the params dict
+	idl_path = params['idl_path']
+
+	# get the number corresponding to the maximum coverage of any source in
+	# the input source lists. an unnecessarily large value will make the 
+	# pipeline slower than it has to be, so this value should be set to the
+	# appropriate value depending on the observing strategy. if the value is
+	# too low then the pipeline will not take advantage of additional data
+	# available for some sources.
+	max_cov = params['max_cov']
 
 	# this is the master project directory containing the data, input file,
 	# and subdirectory containing the RA/Dec source list files
@@ -115,7 +127,8 @@ if __name__ == "__main__":
 			metadata = {'name':name, 'data_dir':data_dir, 'work_dir':work_dir,
 				'out_dir':out_dir, 'radecfile':radecfile,
 				'bcd_dict_path':bcd_dict_path, 'unc_dict_path':unc_dict_path,
-				'aors':aors, 'channel':ch}
+				'aors':aors, 'channel':ch,
+				'idl_path': idl_path, 'max_cov': max_cov}
 			if is_hdr:
 				metadata['hdr'] = hdr
 			metadata_path = work_dir+'/metadata.json'
