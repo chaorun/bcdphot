@@ -8,7 +8,7 @@ import numpy as np
 import simplejson as json
 import multiprocessing
 from scipy.spatial import cKDTree as KDT
-from util import get_filepaths, unzip
+from util import unzip
 
 def spherical_to_cartesian(ra, dec):
 	"""
@@ -34,9 +34,9 @@ def source_in_image(argslist):
 	x_max = hdr['NAXIS1']
 	y_max = hdr['NAXIS2']
 	if x >= 0 and x < x_max and y >= 0 and y < y_max:
-		return (True,x,y)
+		return True, x, y
 	else:
-		return (False,x,y)
+		return False, x, y
 
 def get_k_closest_bcd_idx(ra, dec, tree, k=10):
 	"""
@@ -44,7 +44,7 @@ def get_k_closest_bcd_idx(ra, dec, tree, k=10):
 	to the input RA/Dec coordinate pair.
 	"""
 	coords = radec_to_coords(ra, dec)
-	idx = tree.query(coords,k=k)[1].ravel()
+	idx = tree.query(coords, k=k)[1].ravel()
 	return idx
 
 def radec_to_coords(ra, dec):
@@ -83,24 +83,18 @@ def get_bcd_list(metadata):
 	filenames, filepaths = [np.array(i) for i in unzip(bcd_dict.items())]
 
 	# extract center pixel coordinates
-	files_ra = []
-	files_dec = []
-	for fp in filepaths:
+	files_ra = np.zeros(filepaths.size)
+	files_dec = np.zeros(filepaths.size)
+	for i, fp in enumerate(filepaths):
 		hdr = pyfits.getheader(fp)
-		center_ra = hdr['CRVAL1']
-		center_dec = hdr['CRVAL2']
-		files_ra.append(center_ra)
-		files_dec.append(center_dec)
+		files_ra[i] = hdr['CRVAL1']
+		files_dec[i] = hdr['CRVAL2']
 
-	# make arrays
-	files_ra = np.array(files_ra, copy=False)
-	files_dec = np.array(files_dec, copy=False)
-
-	# make array of coordinates and populate the tree
-	kdt = KDT(radec_to_coords(files_ra,files_dec))
+	# make array of coordinates and grow the tree
+	kdt = KDT(radec_to_coords(files_ra, files_dec))
 
 	# spawn processes using multiprocessing to check for images containing,
-	# the source, using the tree to find only the closest BCDs
+	# the source, using the tree to find only the closest BCDs to check
 	ncpus = multiprocessing.cpu_count()
 	pool = multiprocessing.Pool(processes=ncpus)
 	# print "using %i CPUs" % ncpus
@@ -111,8 +105,8 @@ def get_bcd_list(metadata):
 
 		# create internal source ID and associate with each RA/Dec pair
 		d = {'id':i, 'ra':ra[i], 'dec':dec[i]}
-		print('finding files associated with source '+str(i+1)+\
-			' at '+str(ra[i])+', '+str(dec[i]))
+		message = 'finding files associated with source {} at ({}, {})'
+		print(message.format(i, ra[i], dec[i]))
 
 		# get the subset of BCDs to search
 		idx = get_k_closest_bcd_idx(ra[i], dec[i], kdt, k=max_cov)
@@ -122,30 +116,34 @@ def get_bcd_list(metadata):
 		argslist = zip([ra[i]]*n_files, [dec[i]]*n_files, filepaths_subset)
 
 		# send jobs to the pool
-		results = pool.map(source_in_image,argslist)
+		results = pool.map(source_in_image, argslist)
 
 		# unzip the results and extract the boolean array and pixel coordinates
 		results_unzipped = unzip(results)
 		bool_arr = np.array(results_unzipped[0])
 		x = results_unzipped[1]
 		y = results_unzipped[2]
-		pix_coord = np.array(zip(x,y))[bool_arr].tolist()
+		pix_coord = np.array(zip(x, y))[bool_arr].tolist()
 
 		# get the names of the files associated with the source
 		good_bcds = filenames_subset[bool_arr].tolist()
+		
+		# compare the number of associated images to the previous maximum
 		num_images = len(good_bcds)
-		print('\t'+str(num_images)+' images')
+		print('\t{} images'.format(num_images))
 		if num_images > max_num_images:
 			max_num_images = num_images
+
+		# store results in source dict and append to source list
 		d['files'] = good_bcds
 		d['pixels'] = pix_coord
 		sources.append(d)
 
 	outfile = 'bcd_list.json'
-	outfilepath = '/'.join([work_dir,outfile])
-	with open(outfilepath,'w') as w:
-		json.dump(sources,w,indent=4*' ')
+	outfilepath = '/'.join([work_dir, outfile])
+	with open(outfilepath, 'w') as w:
+		json.dump(sources, w, indent=4*' ')
 
-	print('created file: '+outfilepath)
-	print('maximum number of images associated with a source: '+\
-		str(max_num_images))
+	print('created file: {}'.format(outfilepath))
+	message = 'maximum number of images associated with a source: {}'
+	print(message.format(max_num_images))
