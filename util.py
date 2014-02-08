@@ -80,20 +80,103 @@ def get_bcd_subset(bcd_dict,aors,ch,hdr=False):
 			bcds.append(value)
 	return bcds
 
+
+def spherical_to_cartesian(ra, dec):
+	
+	"""
+	Inputs in degrees.  Outputs x,y,z
+	"""
+	
+	rar = np.radians(ra)
+	decr = np.radians(dec)
+	x = np.cos(rar) * np.cos(decr)
+	y = np.sin(rar) * np.cos(decr)
+	z = np.sin(decr)
+	return x, y, z
+
+
+def radec_to_coords(ra, dec):
+	
+	"""
+	Converts the input RA/Dec from spherical degrees to cartesian,
+	then returns an array containing the result.
+	"""
+	
+	x, y, z = spherical_to_cartesian(ra, dec)
+	# this is equivalent to, but faster than just doing np.array([x, y, z])
+	coords = np.empty((x.size, 3))
+	coords[:, 0] = x
+	coords[:, 1] = y
+	coords[:, 2] = z
+	return coords
+
+
+def great_circle_distance(ra1, dec1, ra2, dec2):
+	
+	"""
+	Returns great circle distance.  Inputs in degrees.
+	Uses vicenty distance formula - a bit slower than others, but
+	numerically stable.
+	"""
+	
+	from numpy import radians, degrees, sin, cos, arctan2, hypot
+	# terminology from the Vicenty formula - lambda and phi and
+	# "standpoint" and "forepoint"
+	lambs = radians(ra1)
+	phis = radians(dec1)
+	lambf = radians(ra2)
+	phif = radians(dec2)
+	dlamb = lambf - lambs
+	numera = cos(phif) * sin(dlamb)
+	numerb = cos(phis) * sin(phif) - sin(phis) * cos(phif) * cos(dlamb)
+	numer = hypot(numera, numerb)
+	denom = sin(phis) * sin(phif) + cos(phis) * cos(phif) * cos(dlamb)
+	return degrees(arctan2(numer, denom))
+
+
+def spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.):
+
+	"""
+	Uses a k-d tree to efficiently match two pairs of coordinates in spherical
+	geometry, with a tolerance in degrees.
+	"""
+
+	args = ra1, dec1, ra2, dec2
+	ra1, dec1, ra2, dec2 = map(partial(np.array, copy=False), args)
+	coords1 = radec_to_coords(ra1, dec1)
+	coords2 = radec_to_coords(ra2, dec2)
+	kdt = KDT(coords2)
+	idx2 = kdt.query(coords1)[1]
+	ds = great_circle_distance(ra1, dec1, ra2[idx2], dec2[idx2])
+	idx1 = np.arange(ra1.size)
+	msk = ds < tolerance
+	idx1 = idx1[msk]
+	idx2 = idx2[msk]
+	ds = ds[msk]
+	return idx1, idx2, ds
+
+
 def unzip(list):
+
 	"""
 	The inverse of zip()
 	"""
+
 	return zip(*list)
 
+
 def discrete_hist(x):
+
 	"""
 	Histogram generator for discrete valued list input: yields value, count
 	i.e. 
 	for value, count in discrete_hist(x):
 		print "{}: {}".format(value,count)
 	"""
+
 	s = set(x)
 	arr = np.array(x)
 	for i in s:
 		yield i, np.sum(arr==i)
+
+

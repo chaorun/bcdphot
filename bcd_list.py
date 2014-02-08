@@ -8,25 +8,17 @@ import numpy as np
 import simplejson as json
 import multiprocessing
 from scipy.spatial import cKDTree as KDT
-from util import unzip
+from util import unzip, spherical_to_cartesian, radec_to_coords
 
-def spherical_to_cartesian(ra, dec):
-	"""
-	Inputs in degrees.  Outputs x,y,z
-	"""
-	rar = np.radians(ra)
-	decr = np.radians(dec)
-	x = np.cos(rar) * np.cos(decr)
-	y = np.sin(rar) * np.cos(decr)
-	z = np.sin(decr)
-	return x, y, z
 
 def source_in_image(argslist):
+
 	"""
 	Reads the input FITS file and checks to make sure the RA/Dec pair
 	corresponds to a physical pixel on the array.
 	argslist = [RA, Dec, BCD]
 	"""
+
 	ra, dec, fitsfile = argslist
 	hdr = pyfits.getheader(fitsfile)
 	wcs = wcslib.WcsProjection(hdr)
@@ -38,30 +30,20 @@ def source_in_image(argslist):
 	else:
 		return False, x, y
 
+
 def get_k_closest_bcd_idx(ra, dec, tree, k=10):
+
 	"""
 	Returns the indices of the k BCDs with central coordinates closest
 	to the input RA/Dec coordinate pair.
 	"""
+
 	coords = radec_to_coords(ra, dec)
 	idx = tree.query(coords, k=k)[1].ravel()
 	return idx
 
-def radec_to_coords(ra, dec):
-	"""
-	Helper function for constructing/querying k-d trees with coordinates
-	in spherical geometry.
-	Converts the input arrays from spherical coordinates to cartesion
-	and populates a 3-dimensional array with the result.
-	"""
-	x, y, z = spherical_to_cartesian(ra, dec)
-	coords = np.empty((x.size, 3))
-	coords[:, 0] = x
-	coords[:, 1] = y
-	coords[:, 2] = z
-	return coords
-
 def get_bcd_list(metadata):
+
 	"""
 	Metadata is a dict with keys:
 		name, radecfile, data_dir, out_dir, work_dir, aors, channel,

@@ -10,43 +10,13 @@ import simplejson as json
 import subprocess, shlex
 from scipy.spatial import cKDTree as KDT
 from util import get_filepaths
+from util import spherical_to_cartesian
+from util import radec_to_coords
+from util import great_circle_distance
+from util import spherematch
 from itertools import groupby
 from functools import partial
 
-def spherical_to_cartesian(ra, dec):
-	
-	"""
-	Inputs in degrees.  Outputs x,y,z
-	"""
-	
-	rar = np.radians(ra)
-	decr = np.radians(dec)
-	x = np.cos(rar) * np.cos(decr)
-	y = np.sin(rar) * np.cos(decr)
-	z = np.sin(decr)
-	return x, y, z
-
-def great_circle_distance(ra1, dec1, ra2, dec2):
-	
-	"""
-	Returns great circle distance.  Inputs in degrees.
-	Uses vicenty distance formula - a bit slower than others, but
-	numerically stable.
-	"""
-	
-	from numpy import radians, degrees, sin, cos, arctan2, hypot
-	# terminology from the Vicenty formula - lambda and phi and
-	# "standpoint" and "forepoint"
-	lambs = radians(ra1)
-	phis = radians(dec1)
-	lambf = radians(ra2)
-	phif = radians(dec2)
-	dlamb = lambf - lambs
-	numera = cos(phif) * sin(dlamb)
-	numerb = cos(phis) * sin(phif) - sin(phis) * cos(phif) * cos(dlamb)
-	numer = hypot(numera, numerb)
-	denom = sin(phis) * sin(phif) + cos(phis) * cos(phif) * cos(dlamb)
-	return degrees(arctan2(numer, denom))
 
 def get_k_closest_idx(ra, dec, tree, k=10):
 	
@@ -60,20 +30,6 @@ def get_k_closest_idx(ra, dec, tree, k=10):
 	idx = tree.query(coords,k=k)[1].ravel()
 	return idx
 
-def radec_to_coords(ra, dec):
-	
-	"""
-	Converts the input RA/Dec from spherical degrees to cartesian,
-	then returns an array containing the result.
-	"""
-	
-	x, y, z = spherical_to_cartesian(ra, dec)
-	# this is equivalent to, but faster than just doing np.array([x, y, z])
-	coords = np.empty((x.size, 3))
-	coords[:, 0] = x
-	coords[:, 1] = y
-	coords[:, 2] = z
-	return coords
 
 def get_photometry_idl(source_list_path):
 	
@@ -135,6 +91,7 @@ def get_photometry_idl(source_list_path):
 	bad_arr = np.loadtxt(work_dir+'/bad_list.txt')
 	return good_arr, bad_arr
 
+
 def get_phot_groups(good_arr):
 	
 	"""
@@ -150,6 +107,7 @@ def get_phot_groups(good_arr):
 	phot_groups_dict = { key: [i['data'] for i in group] for 
 		key, group in groupby(good_lst_dct, lambda x: x['id']) }
 	return phot_groups_dict
+
 
 def get_bcd_phot(source_list_path):
 	
@@ -206,6 +164,7 @@ def collapse_groups(phot_groups_dict):
 		lst.append(d)
 	return lst
 
+
 def write_mean_groups(phot_groups_path):
 	
 	"""
@@ -250,26 +209,6 @@ def save_single_channel(phot_groups_mean_path):
 	np.savetxt(out_path, catalog[idx], fmt = fmt, header = header)
 	print("created file: "+out_path)
 
-def spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.):
-
-	"""
-	Uses a k-d tree to efficiently match two pairs of coordinates in spherical
-	geometry, with a tolerance in degrees.
-	"""
-
-	args = ra1, dec1, ra2, dec2
-	ra1, dec1, ra2, dec2 = map(partial(np.array, copy=False), args)
-	coords1 = radec_to_coords(ra1, dec1)
-	coords2 = radec_to_coords(ra2, dec2)
-	kdt = KDT(coords2)
-	idx2 = kdt.query(coords1)[1]
-	ds = great_circle_distance(ra1, dec1, ra2[idx2], dec2[idx2])
-	idx1 = np.arange(ra1.size)
-	msk = ds < tolerance
-	idx1 = idx1[msk]
-	idx2 = idx2[msk]
-	ds = ds[msk]
-	return idx1, idx2, ds
 
 def save_catalog(catalog, out_path):
 	
@@ -281,6 +220,7 @@ def save_catalog(catalog, out_path):
 		'ch2_flux ch2_unc n_obs1 n_obs2'
 	np.savetxt(out_path, catalog, fmt = ['%.8f']*6+['%i']*2, header = header)
 	print('created file: '+out_path)
+
 
 def apply_array_location_correction(args_list):
 
