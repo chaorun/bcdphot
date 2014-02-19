@@ -2,6 +2,7 @@ import os
 import fnmatch
 import numpy as np
 from functools import partial
+from scipy.spatial import cKDTree as KDT
 
 
 def find_files(directory, pattern):
