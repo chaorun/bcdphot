@@ -1,10 +1,13 @@
-PRO bcd_phot,cbcdfile,cbuncfile,radeclist,channel
+PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel
 
 ; DESCRIPTION
 ;	Computes aperture photometry of the sources in radeclist
 ;	on the image in cbcdfile. Applies pixel phase correction but
 ;	not array location correction. Converts output to Jy and
-;	prints a list of RA, Dec, x, y, flux, uncertainty to stdout.
+;	writes RA, Dec, x, y, flux, uncertainty, and uncorrected flux
+;	to disk, as well as details of any sources for which aper.pro
+;	returned a NaN -- either due to the source being off the array
+;	or the presence of bad pixels.
 ; AUTHOR
 ;	John Livingston
 ; DATE
@@ -23,8 +26,6 @@ ap_par = '3_12_20'
 ;conversion factors
 ap_cor_ch1 = 1.112			;ch1 aperture correction 3 pix radius, 12-20 pix annulus
 ap_cor_ch2 = 1.113			;ch2 aperture correction 3 pix radius, 12-20 pix annulus
-; conv_fac = 33.847732		;MJy/sr --> uJy for native 1.2"/pix
-; conv_fac = 35.17421909111017		;MJy/sr --> uJy for native 1.2233"/pix
 conv_fac = 35.174234		;MJy/sr --> uJy for native 1.2233"/pix
 
 if channel eq 1 then ap_cor = ap_cor_ch1
@@ -38,6 +39,9 @@ img = readfits(cbcdfile,hdr,/silent)
 
 ;read in uncertainty per pixel
 unc = readfits(cbuncfile,/silent)
+
+;read in imask file
+mask = readfits(maskfile,/silent)
 
 ;calculate photons per digital unit from header values
 GAIN = sxpar(hdr,'GAIN')
@@ -54,10 +58,13 @@ sep = strsplit(radeclist,'/')
 work_dir = strmid(radeclist,0,sep[n_elements(sep)-1])
 good_out = work_dir+'good_list.txt'
 bad_out = work_dir+'bad_list.txt'
+masked_out = work_dir+'masked_list.txt'
 get_lun,good
 get_lun,bad
+get_lun,masked
 openw,good,good_out,width=1200,/append
 openw,bad,bad_out,width=1200,/append
+openw,masked,masked_out,width=1200,/append
 
 ;loop through source pixel coordinates and do photometry at that location in image
 for i=0,n_elements(x)-1 do begin
@@ -67,6 +74,13 @@ for i=0,n_elements(x)-1 do begin
 
 	;centroid on x,y
 	box_centroider,img,unc^2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
+
+	;check for any flagged pixels inside the aperture, skip if so
+	if badpix_aperture(mask,x0,y0,apr) eq 1 then begin
+		printf,masked,strtrim(strcompress([string(id[i]),maskfile,$
+			string([x0,y0])]),1)
+		continue
+	endif
 
 	;get photometry on centroid
 	aper,img,x0,y0,flux_aper,fluxerr,sky,skyerr,phpadu,apr,skyrad,badpix,$
@@ -97,5 +111,6 @@ endfor
 
 close,good
 close,bad
+close,masked
 
 END

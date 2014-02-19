@@ -65,9 +65,15 @@ def get_photometry_idl(source_list_path):
 		# keys are the BCD filenames
 		bcd_path = bcd_dict[key]
 
-		# print(bcd_path)
+		# get the UNC file path
 		unc_key = key.replace('bcd.fits','bunc.fits')
 		unc_path = unc_dict[unc_key]
+
+		# also get the imask path
+		if metadata['cbcd']:
+			mask_path = bcd_path.replace('cbcd.fits','bimsk.fits')
+		else:
+			mask_path = bcd_path.replace('bcd.fits','bimsk.fits')
 
 		# item of key is the list of ID/RA/Dec of sources in the image
 		s = sources[key]
@@ -79,7 +85,7 @@ def get_photometry_idl(source_list_path):
 		np.savetxt(tmp_radec_path,s,fmt=['%i']+['%.9f']*2)
 
 		# spawn subprocess to get bcd_phot.pro output for the current image
-		cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+\
+		cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+mask_path+'","'+\
 			tmp_radec_path+'",'+channel
 		returncode = subprocess.call([idl,'-quiet','-e',cmd], 
 			stderr = subprocess.PIPE, stdout = subprocess.PIPE)
