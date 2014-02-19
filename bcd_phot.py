@@ -15,7 +15,6 @@ from util import radec_to_coords
 from util import great_circle_distance
 from util import spherematch
 from itertools import groupby
-from functools import partial
 
 
 def get_k_closest_idx(ra, dec, tree, k=10):

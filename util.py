@@ -1,18 +1,24 @@
 import os
 import fnmatch
 import numpy as np
+from functools import partial
+
 
 def find_files(directory, pattern):
+
 	"""
 	generator for filepaths in <directory> matching <pattern>
 	"""
+
 	for root, dirs, files in os.walk(directory):
 		for basename in files:
 			if fnmatch.fnmatch(basename, pattern):
 				filename = os.path.join(root, basename)
 				yield filename
 
+
 def get_filepaths(suffix,data_dir,aors,ch,hdr=False):
+
 	"""
 	walks directory tree in <data_dir> and populates a list of filepaths
 	matching the specifications given by <suffix>, <aors>, <ch>, <hdr>,
@@ -24,6 +30,7 @@ def get_filepaths(suffix,data_dir,aors,ch,hdr=False):
 			if False, the data are assumed to be all the same exposure time
 			(non-HDR mode)
 	"""
+
 	filepaths = []
 	for aor in aors:
 		for f in find_files(data_dir,'*I'+ch+'_'+aor+'*'+suffix):
@@ -41,12 +48,14 @@ def get_filepaths(suffix,data_dir,aors,ch,hdr=False):
 				print('error: unexpected value for <hdr> argument')
 	return filepaths
 
-# unnecessary, just for fun
+
 def ignore_oserror(f):
+
 	"""
 	decorator for handling OSError exceptions, i.e. when you try to
 	make a directory that already exists.
 	"""
+
 	def wrapper(arg):
 		try:
 			f(arg)
@@ -54,15 +63,19 @@ def ignore_oserror(f):
 			pass
 	return wrapper
 
+
 @ignore_oserror
 def mkdirs(dir):
 	os.makedirs(dir)
 
+
 def get_bcd_subset(bcd_dict,aors,ch,hdr=False):
+
 	"""
 	finds values (full paths) in bcd_dict with keys (file names) 
 	matching aors, ch, and hdr
 	"""
+
 	bcds = []
 	if not hdr:
 		for key, value in bcd_dict.items():
