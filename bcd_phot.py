@@ -90,7 +90,7 @@ def get_photometry_idl(source_list_path):
 		cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+mask_path+'","'+\
 			tmp_radec_path+'",'+channel
 		if metadata['mask']:
-			cmd += '",/mask'
+			cmd += ',/mask'
 		returncode = subprocess.call([idl,'-quiet','-e',cmd], 
 			stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 
