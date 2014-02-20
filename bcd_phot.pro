@@ -1,4 +1,4 @@
-PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel,MASK=mask
+PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel,USE_MASK=use_mask
 
 ; DESCRIPTION
 ;	Computes aperture photometry of the sources in radeclist
@@ -41,7 +41,7 @@ img = readfits(cbcdfile,hdr,/silent)
 unc = readfits(cbuncfile,/silent)
 
 ;read in imask file
-if keyword_set(mask) then mask = readfits(maskfile,/silent)
+if keyword_set(use_mask) then mask = readfits(maskfile,/silent)
 
 ;calculate photons per digital unit from header values
 GAIN = sxpar(hdr,'GAIN')
@@ -62,7 +62,7 @@ get_lun,good
 get_lun,bad
 openw,good,good_out,width=1200,/append
 openw,bad,bad_out,width=1200,/append
-if keyword_set(mask) then begin
+if keyword_set(use_mask) then begin
 	masked_out = work_dir+'masked_list.txt'
 	get_lun,masked
 	openw,masked,masked_out,width=1200,/append
@@ -78,7 +78,7 @@ for i=0,n_elements(x)-1 do begin
 	box_centroider,img,unc^2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
 
 	;check for any flagged pixels inside the aperture, skip if so
-	if keyword_set(mask) then begin
+	if keyword_set(use_mask) then begin
 		if badpix_aperture(mask,x0,y0,apr) eq 1 then begin
 			printf,masked,strtrim(strcompress([string(id[i]),maskfile,$
 				string([x0,y0])]),1)
@@ -116,6 +116,6 @@ endfor
 
 close,good
 close,bad
-if keyword_set(mask) then close,masked
+if keyword_set(use_mask) then close,masked
 
 END
