@@ -56,6 +56,10 @@ def get_photometry_idl(source_list_path):
 		g.write(good_hdr+'\n')
 	with open(work_dir+'/bad_list.txt','w') as b:
 		b.write(bad_hdr+'\n')
+	if metadata['cbcd']:
+		mask_hdr = '# id maskfile x y'
+		with open(work_dir+'/masked_list.txt','w') as b:
+			b.write(mask_hdr+'\n')
 
 	# loop through the BCDs in the source list and get photometry
 	for key in sources.keys():

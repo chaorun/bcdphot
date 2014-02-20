@@ -58,12 +58,12 @@ sep = strsplit(radeclist,'/')
 work_dir = strmid(radeclist,0,sep[n_elements(sep)-1])
 good_out = work_dir+'good_list.txt'
 bad_out = work_dir+'bad_list.txt'
-masked_out = work_dir+'masked_list.txt'
 get_lun,good
 get_lun,bad
 openw,good,good_out,width=1200,/append
 openw,bad,bad_out,width=1200,/append
 if keyword_set(mask) then begin
+	masked_out = work_dir+'masked_list.txt'
 	get_lun,masked
 	openw,masked,masked_out,width=1200,/append
 endif
