@@ -125,7 +125,8 @@ for region in regions:
 		metadata = {'name':name, 'data_dir':data_dir, 'work_dir':work_dir,
 			'out_dir':out_dir, 'radecfile':radecfile,
 			'bcd_dict_path':bcd_dict_path, 'unc_dict_path':unc_dict_path,
-			'aors':aors, 'channel':ch, 'cbcd':params['cbcd'],
+			'aors':aors, 'channel':ch, 
+			'cbcd':params['cbcd'], 'mask':params['mask'],
 			'idl_path': idl_path, 'max_cov': max_cov}
 		if is_hdr:
 			metadata['hdr'] = hdr
