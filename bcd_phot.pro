@@ -1,4 +1,4 @@
-PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel
+PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel,MASK=mask
 
 ; DESCRIPTION
 ;	Computes aperture photometry of the sources in radeclist
@@ -41,7 +41,7 @@ img = readfits(cbcdfile,hdr,/silent)
 unc = readfits(cbuncfile,/silent)
 
 ;read in imask file
-mask = readfits(maskfile,/silent)
+if keyword_set(mask) then mask = readfits(maskfile,/silent)
 
 ;calculate photons per digital unit from header values
 GAIN = sxpar(hdr,'GAIN')
@@ -61,10 +61,12 @@ bad_out = work_dir+'bad_list.txt'
 masked_out = work_dir+'masked_list.txt'
 get_lun,good
 get_lun,bad
-get_lun,masked
 openw,good,good_out,width=1200,/append
 openw,bad,bad_out,width=1200,/append
-openw,masked,masked_out,width=1200,/append
+if keyword_set(mask) then begin
+	get_lun,masked
+	openw,masked,masked_out,width=1200,/append
+endif
 
 ;loop through source pixel coordinates and do photometry at that location in image
 for i=0,n_elements(x)-1 do begin
@@ -76,10 +78,12 @@ for i=0,n_elements(x)-1 do begin
 	box_centroider,img,unc^2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
 
 	;check for any flagged pixels inside the aperture, skip if so
-	if badpix_aperture(mask,x0,y0,apr) eq 1 then begin
-		printf,masked,strtrim(strcompress([string(id[i]),maskfile,$
-			string([x0,y0])]),1)
-		continue
+	if keyword_set(mask) then begin
+		if badpix_aperture(mask,x0,y0,apr) eq 1 then begin
+			printf,masked,strtrim(strcompress([string(id[i]),maskfile,$
+				string([x0,y0])]),1)
+			continue
+		endif
 	endif
 
 	;get photometry on centroid
@@ -94,6 +98,7 @@ for i=0,n_elements(x)-1 do begin
 	corrected_flux = pixel_phase_correct_gauss(flux_jy,x0,y0,channel,ap_par)
 	flux_mjy = corrected_flux * 1e3
 	unc_mjy = unc * 1e3
+	flux_uncor = flux_jy * 1e3
 
 	;calculate RA/Dec of centroids
 	xyad,hdr,x0,y0,ra0,dec0
@@ -101,7 +106,7 @@ for i=0,n_elements(x)-1 do begin
 	;print the data
 	if finite(flux_aper) eq 1 then begin
 		printf,good,strtrim(strcompress([string(id[i]),$
-			string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy,flux_jy*1e3])]),1)
+			string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy,flux_uncor])]),1)
 	endif else begin
 		printf,bad,strtrim(strcompress([string(id[i]),$
 			string([ra[i],dec[i],ra0,dec0,x0,y0])]),1)
@@ -111,6 +116,6 @@ endfor
 
 close,good
 close,bad
-close,masked
+if keyword_set(mask) then close,masked
 
 END
