@@ -8,7 +8,6 @@ import wcslib
 import numpy as np
 import simplejson as json
 import subprocess, shlex
-from scipy.spatial import cKDTree as KDT
 from util import get_filepaths
 from util import spherical_to_cartesian
 from util import radec_to_coords
@@ -86,6 +85,8 @@ def get_photometry_idl(source_list_path):
 		# spawn subprocess to get bcd_phot.pro output for the current image
 		cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+mask_path+'","'+\
 			tmp_radec_path+'",'+channel
+		if metadata['mask']:
+			cmd = cmd+'",/mask'
 		returncode = subprocess.call([idl,'-quiet','-e',cmd], 
 			stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 
