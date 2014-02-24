@@ -79,9 +79,10 @@ for i=0,n_elements(x)-1 do begin
 
 	;check for any flagged pixels inside the aperture, skip if so
 	if keyword_set(use_mask) then begin
-		if badpix_aperture(mask,x0,y0,apr) eq 1 then begin
+		bitflag = badpix_aperture(mask,x0,y0,apr)
+		if bitflag gt 0 then begin
 			printf,masked,strtrim(strcompress([string(id[i]),maskfile,$
-				string([x0,y0])]),1)
+				string([x0,y0,bitflag])]),1)
 			continue
 		endif
 	endif
