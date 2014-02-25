@@ -27,7 +27,7 @@ if nbits gt 0 then begin
 	bits = fix(bits[w])
 	return, bit_flag(bits[uniq(bits, sort(bits))])
 endif else begin
-	return 0
+	return, 0
 endelse
 
 END
