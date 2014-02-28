@@ -15,6 +15,9 @@ PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel,USE_MASK=use_mask
 ; MODIFIED
 ;	11/27/13 -- now supports new input format containing ID field per source
 
+;bit flags to ignore
+ok_bitflags = [4, 16, 128, 20, 132, 144, 148]
+
 ;aper.pro setup
 apr = 3				;using BCDs so pixscale is native 1.2"/pix
 skyrad = [12,20]
@@ -79,8 +82,14 @@ for i=0,n_elements(x)-1 do begin
 
 	;check for any flagged pixels inside the aperture, skip if so
 	if keyword_set(use_mask) then begin
+		ok_src = 0
 		bitflag = badpix_aperture(mask,x0,y0,apr)
-		if bitflag gt 0 then begin
+		if bitflag eq 0 then begin
+			ok_src = 1
+		endif else begin
+			for i=0,n_elements(ok_bitflags)-1 do if bitflag eq ok_bitflags[i] then ok_src = 1
+		endelse
+		if not ok_src then begin
 			printf,masked,strtrim(strcompress([string(id[i]),maskfile,$
 				string([x0,y0]),string(bitflag)]),1)
 			continue
