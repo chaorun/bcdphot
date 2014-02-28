@@ -16,7 +16,8 @@ PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel,USE_MASK=use_mask
 ;	11/27/13 -- now supports new input format containing ID field per source
 
 ;bit flags to ignore
-ok_bitflags = [4, 16, 128, 20, 132, 144, 148]
+; ok_bitflags = [4, 16, 128, 20, 132, 144, 148]
+ok_bitflags = [4, 16, 20]
 
 ;aper.pro setup
 apr = 3				;using BCDs so pixscale is native 1.2"/pix
