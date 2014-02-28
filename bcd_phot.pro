@@ -75,7 +75,7 @@ endif
 for i=0,n_elements(x)-1 do begin
 
 	;check to make sure the pixel coordinates are finite, skip source if not
-	if not finite(x[0]) or not finite(y[0]) then continue
+	if not finite(x[i]) or not finite(y[i]) then continue
 
 	;centroid on x,y
 	box_centroider,img,unc^2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
@@ -87,7 +87,7 @@ for i=0,n_elements(x)-1 do begin
 		if bitflag eq 0 then begin
 			ok_src = 1
 		endif else begin
-			for i=0,n_elements(ok_bitflags)-1 do if bitflag eq ok_bitflags[i] then ok_src = 1
+			for j=0,n_elements(ok_bitflags)-1 do if bitflag eq ok_bitflags[j] then ok_src = 1
 		endelse
 		if not ok_src then begin
 			printf,masked,strtrim(strcompress([string(id[i]),maskfile,$
