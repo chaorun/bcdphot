@@ -84,6 +84,12 @@ if len(os.listdir(out_dir)) is 0:
 	with open(out_dir+'/unc_dict.json','w') as w:
 		json.dump(unc_dict,w,indent=' '*4)
 
+else:
+
+	# read in existing bcd_dict.json, unc_dict.json
+	bcd_dict = json.load(open(out_dir+'/bcd_dict.json'))
+	unc_dict = json.load(open(out_dir+'/unc_dict.json'))
+
 # loop through the source lists (radecfiles) and create output directory
 # structure and metadata files used throughout the rest of the pipeline
 print('creating directory structure and metadata in output directory...')
