@@ -21,20 +21,20 @@ PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel,USE_MASK=use_mask
 ok_bitflags = [0]	;mask all bitflags
 
 ;aper.pro setup
-apr = 3				;using BCDs so pixscale is native 1.2"/pix
-; apr = 2				;using BCDs so pixscale is native 1.2"/pix
+; apr = 3				;using BCDs so pixscale is native 1.2"/pix
+apr = 2				;using BCDs so pixscale is native 1.2"/pix
 skyrad = [12,20]
 badpix = [0,0]
 
 ;aperture photometry parameter string for pixel_phase_correct_gauss
-ap_par = '3_12_20'
-; ap_par = '2_12_20'
+; ap_par = '3_12_20'
+ap_par = '2_12_20'
 
 ;conversion factors
-ap_cor_ch1 = 1.112			;ch1 aperture correction 3 pix radius, 12-20 pix annulus
-ap_cor_ch2 = 1.113			;ch2 aperture correction 3 pix radius, 12-20 pix annulus
-; ap_cor_ch1 = 1.205			;ch1 aperture correction 2 pix radius, 12-20 pix annulus
-; ap_cor_ch2 = 1.221			;ch2 aperture correction 2 pix radius, 12-20 pix annulus
+; ap_cor_ch1 = 1.112			;ch1 aperture correction 3 pix radius, 12-20 pix annulus
+; ap_cor_ch2 = 1.113			;ch2 aperture correction 3 pix radius, 12-20 pix annulus
+ap_cor_ch1 = 1.205			;ch1 aperture correction 2 pix radius, 12-20 pix annulus
+ap_cor_ch2 = 1.221			;ch2 aperture correction 2 pix radius, 12-20 pix annulus
 conv_fac = 35.174234		;MJy/sr --> uJy for native 1.2233"/pix
 
 if channel eq 1 then ap_cor = ap_cor_ch1
