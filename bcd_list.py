@@ -4,6 +4,7 @@ import os
 import sys
 import pyfits
 import wcslib
+import itertools
 import numpy as np
 import simplejson as json
 import multiprocessing
@@ -41,6 +42,7 @@ def get_k_closest_bcd_idx(ra, dec, tree, k=10):
 	coords = radec_to_coords(ra, dec)
 	idx = tree.query(coords, k=k)[1].ravel()
 	return idx
+
 
 def get_bcd_list(metadata):
 
@@ -129,3 +131,28 @@ def get_bcd_list(metadata):
 	print('created file: {}'.format(outfilepath))
 	message = 'maximum number of images associated with a source: {}'
 	print(message.format(max_num_images))
+
+
+def map_bcd_sources(filepath):
+	"""
+	Reads JSON bcd list file, gets the set of BCD files,
+	then associates each with a set of RA/Dec coordinates (and source ID).
+	"""
+	sources = json.load(open(filepath))
+
+	list2d = [i['files'] for i in sources]
+	merged = list(itertools.chain.from_iterable(list2d))
+	bcd_list = list(set(merged))
+	bcd_list.sort()
+
+	d = {}
+	for i in bcd_list:
+		d[i] = []
+		for s in sources:
+			if i in s['files']:
+				d[i].append((s['id'],s['ra'],s['dec']))
+
+	outfilepath = filepath.replace('bcd_list.json','source_list.json')
+	with open(outfilepath,'w') as w:
+		json.dump(d,w,indent=4*' ')
+	print('created file: '+outfilepath)
