@@ -1,26 +1,44 @@
-params: {proj_dir: /home/jlivings/spitzer_cirb_data, out_dir: /home/jlivings/spitzer_cirb_data/bcdphot_out, cbcd: true, hdr: true}
+params: {data_dir: /home/jlivings/spitzer_cirb_data,
+  out_dir: /home/jlivings/spitzer_cirb_data/bcdphot_out,
+  cbcd: true,
+  hdr: true,
+  idl_path: /usr/admin/local/itt/idl70/bin/idl,
+  max_cov: 12,
+  mask: true}
 regions:
 - aors: ['43420416', '43432192', '43418880']
   name: '3813'
-  radec: [radec_files/3813_1_long_radec.txt, radec_files/3813_1_short_radec.txt, radec_files/3813_2_long_radec.txt,
-    radec_files/3813_2_short_radec.txt]
+  radec: [/home/jlivings/spitzer_cirb_data/radec_files/3813_1_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/3813_1_short_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/3813_2_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/3813_2_short_radec.txt]
 - aors: ['43426816', '43431936', '43432960']
   name: '5883'
-  radec: [radec_files/5883_1_long_radec.txt, radec_files/5883_1_short_radec.txt, radec_files/5883_2_long_radec.txt,
-    radec_files/5883_2_short_radec.txt]
+  radec: [/home/jlivings/spitzer_cirb_data/radec_files/5883_1_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/5883_1_short_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/5883_2_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/5883_2_short_radec.txt]
 - aors: ['43428608', '43430400', '43431168']
   name: '6035'
-  radec: [radec_files/6035_1_long_radec.txt, radec_files/6035_1_short_radec.txt, radec_files/6035_2_long_radec.txt,
-    radec_files/6035_2_short_radec.txt]
+  radec: [/home/jlivings/spitzer_cirb_data/radec_files/6035_1_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/6035_1_short_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/6035_2_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/6035_2_short_radec.txt]
 - aors: ['43424000', '43424512', '43432448']
   name: '765'
-  radec: [radec_files/765_1_long_radec.txt, radec_files/765_1_short_radec.txt, radec_files/765_2_long_radec.txt,
-    radec_files/765_2_short_radec.txt]
+  radec: [/home/jlivings/spitzer_cirb_data/radec_files/765_1_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/765_1_short_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/765_2_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/765_2_short_radec.txt]
 - aors: ['43431424', '43432704', '43427584']
   name: '908'
-  radec: [radec_files/908_1_long_radec.txt, radec_files/908_1_short_radec.txt, radec_files/908_2_long_radec.txt,
-    radec_files/908_2_short_radec.txt]
+  radec: [/home/jlivings/spitzer_cirb_data/radec_files/908_1_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/908_1_short_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/908_2_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/908_2_short_radec.txt]
 - aors: ['43430656', '43430912', '43431680']
   name: '946'
-  radec: [radec_files/946_1_long_radec.txt, radec_files/946_1_short_radec.txt, radec_files/946_2_long_radec.txt,
-    radec_files/946_2_short_radec.txt]
+  radec: [/home/jlivings/spitzer_cirb_data/radec_files/946_1_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/946_1_short_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/946_2_long_radec.txt,
+  /home/jlivings/spitzer_cirb_data/radec_files/946_2_short_radec.txt]
