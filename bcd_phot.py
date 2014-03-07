@@ -47,6 +47,7 @@ def get_photometry_idl(source_list_path):
 	sources = json.load(open(source_list_path))
 	bcd_dict = json.load(open(metadata['bcd_dict_path']))
 	unc_dict = json.load(open(metadata['unc_dict_path']))
+	msk_dict = json.load(open(metadata['msk_dict_path']))
 
 	# initialize photometry output files with column names
 	good_hdr = '# id ra dec ra_cen dec_cen x_cen y_cen flux_mjy unc_mjy '+\
@@ -72,10 +73,8 @@ def get_photometry_idl(source_list_path):
 		unc_path = unc_dict[unc_key]
 
 		# also get the imask path
-		if metadata['cbcd']:
-			mask_path = bcd_path.replace('cbcd.fits','bimsk.fits')
-		else:
-			mask_path = bcd_path.replace('bcd.fits','bimsk.fits')
+		msk_key = key.replace('cbcd.fits','bimsk.fits')
+		msk_path = msk_dict[msk_key]
 
 		# item of key is the list of ID/RA/Dec of sources in the image
 		s = sources[key]
@@ -87,7 +86,7 @@ def get_photometry_idl(source_list_path):
 		np.savetxt(tmp_radec_path,s,fmt=['%i']+['%.9f']*2)
 
 		# spawn subprocess to get bcd_phot.pro output for the current image
-		cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+mask_path+'","'+\
+		cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+msk_path+'","'+\
 			tmp_radec_path+'",'+channel
 		if metadata['mask']:
 			cmd += ',/use_mask'

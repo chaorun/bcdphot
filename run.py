@@ -83,12 +83,18 @@ if len(os.listdir(out_dir)) is 0:
 	unc_dict = {i.split('/')[-1]:i for i in unc_paths}
 	with open(out_dir+'/unc_dict.json','w') as w:
 		json.dump(unc_dict,w,indent=' '*4)
+	# do the same for MSK files
+	msk_paths = list(find_files(data_dir, '*_bimsk.fits'))
+	msk_dict = {i.split('/')[-1]:i for i in msk_paths}
+	with open(out_dir+'/msk_dict.json','w') as w:
+		json.dump(msk_dict,w,indent=' '*4)
 
 else:
 
 	# read in existing bcd_dict.json, unc_dict.json
 	bcd_dict = json.load(open(out_dir+'/bcd_dict.json'))
 	unc_dict = json.load(open(out_dir+'/unc_dict.json'))
+	msk_dict = json.load(open(out_dir+'/msk_dict.json'))
 
 # loop through the source lists (radecfiles) and create output directory
 # structure and metadata files used throughout the rest of the pipeline
@@ -113,17 +119,21 @@ for region in regions:
 
 		# make subset bcd_dict/unc_dict in each work_dir
 		if is_hdr:
-			bcd_paths_subset = get_bcd_subset(bcd_dict,aors,ch,hdr)
-			unc_paths_subset = get_bcd_subset(unc_dict,aors,ch,hdr)
+			bcd_paths_subset = get_bcd_subset(bcd_dict, aors, ch, hdr)
+			unc_paths_subset = get_bcd_subset(unc_dict, aors, ch, hdr)
+			msk_paths_subset = get_bcd_subset(msk_dict, aors, ch, hdr)
 		else:
-			bcd_paths_subset = get_bcd_subset(bcd_dict,aors,ch)
-			unc_paths_subset = get_bcd_subset(unc_dict,aors,ch)
+			bcd_paths_subset = get_bcd_subset(bcd_dict, aors, ch)
+			unc_paths_subset = get_bcd_subset(unc_dict, aors, ch)
+			msk_paths_subset = get_bcd_subset(msk_dict, aors, ch)
 
 		bcd_dict_subset = {i.split('/')[-1]:i for i in bcd_paths_subset}
 		unc_dict_subset = {i.split('/')[-1]:i for i in unc_paths_subset}
+		msk_dict_subset = {i.split('/')[-1]:i for i in msk_paths_subset}
 
 		bcd_dict_path = work_dir+'/bcd_dict.json'
 		unc_dict_path = work_dir+'/unc_dict.json'
+		msk_dict_path = work_dir+'/msk_dict.json'
 
 		with open(bcd_dict_path,'w') as w:
 			json.dump(bcd_dict_subset,w,indent=' '*4)
@@ -133,9 +143,15 @@ for region in regions:
 			json.dump(unc_dict_subset,w,indent=' '*4)
 		print('created: '+unc_dict_path)
 
+		with open(msk_dict_path,'w') as w:
+			json.dump(msk_dict_subset,w,indent=' '*4)
+		print('created: '+msk_dict_path)
+
 		metadata = {'name':name, 'data_dir':data_dir, 'work_dir':work_dir,
 			'out_dir':out_dir, 'radecfile':radecfile,
-			'bcd_dict_path':bcd_dict_path, 'unc_dict_path':unc_dict_path,
+			'bcd_dict_path':bcd_dict_path,
+			'unc_dict_path':unc_dict_path,
+			'msk_dict_path':msk_dict_path,
 			'aors':aors, 'channel':ch, 
 			'cbcd':params['cbcd'], 'mask':params['mask'],
 			'idl_path': idl_path, 'max_cov': max_cov}
