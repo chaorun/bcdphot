@@ -18,7 +18,7 @@ def find_files(directory, pattern):
 				yield filename
 
 
-def get_filepaths(suffix,data_dir,aors,ch,hdr=False):
+def get_filepaths(suffix, data_dir, aors, ch, hdr=False):
 
 	"""
 	walks directory tree in <data_dir> and populates a list of filepaths
@@ -70,7 +70,7 @@ def mkdirs(dir):
 	os.makedirs(dir)
 
 
-def get_bcd_subset(bcd_dict,aors,ch,hdr=False):
+def get_bcd_subset(bcd_dict, aors, ch, hdr=False):
 
 	"""
 	finds values (full paths) in bcd_dict with keys (file names) 
