@@ -26,7 +26,7 @@ def source_in_image(argslist):
 	# wcs = wcslib.WcsProjection(hdr)
 	wcs = pywcs.WCS(hdr)
 	# x, y = wcs.toPixel(ra, dec, rnd=False)
-	x, y = wcs.wcs_sky2pix(ra, dec, rnd=False)
+	x, y = map(lambda x: x[0], wcs.wcs_sky2pix(ra, dec, 1))
 	x_max = hdr['NAXIS1']
 	y_max = hdr['NAXIS2']
 	if x >= 0 and x < x_max and y >= 0 and y < y_max:
@@ -55,7 +55,7 @@ def get_bcd_list(metadata):
 		bcd_dict_path, max_cov
 	"""
 
-	radecfile =	metadata['radecfile']
+	radecfile = metadata['radecfile']
 	work_dir = metadata['work_dir']
 	aors = metadata['aors']
 	max_cov = metadata['max_cov']
