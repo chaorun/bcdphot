@@ -3,9 +3,7 @@
 import os
 import sys
 import pyfits
-# import wcslib
 import pywcs
-# from astropy import wcs
 import itertools
 import numpy as np
 import simplejson as json
@@ -24,13 +22,8 @@ def source_in_image(argslist):
 
 	ra, dec, fitsfile = argslist
 	hdr = pyfits.getheader(fitsfile)
-	# wcs = wcslib.WcsProjection(hdr)
 	wcs = pywcs.WCS(hdr)
-	# w = wcs.WCS(hdr)
-	# x, y = wcs.toPixel(ra, dec, rnd=False)
 	x, y = map(lambda x: x[0], wcs.wcs_sky2pix(ra, dec, 1))
-	# x, y = map(lambda x: x.item(), w.wcs_world2pix(ra, dec, 1))
-	# x, y = w.wcs_world2pix(ra, dec, 1)
 	x_max = hdr['NAXIS1']
 	y_max = hdr['NAXIS2']
 	if x >= 0 and x < x_max and y >= 0 and y < y_max:
@@ -112,6 +105,11 @@ def get_bcd_list(metadata):
 		# unzip the results and extract the boolean array and pixel coordinates
 		results_unzipped = unzip(results)
 		bool_arr = np.array(results_unzipped[0])
+		
+		# if none found, continue to next source
+		if np.sum(bool_arr) == 0:
+			continue
+
 		x = results_unzipped[1]
 		y = results_unzipped[2]
 		pix_coord = np.array(zip(x, y))[bool_arr].tolist()
