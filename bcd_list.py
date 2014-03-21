@@ -29,7 +29,7 @@ def source_in_image(argslist):
 	w = wcs.WCS(hdr)
 	# x, y = wcs.toPixel(ra, dec, rnd=False)
 	# x, y = map(lambda x: x[0], wcs.wcs_sky2pix(ra, dec, 1))
-	x, y = map(lambda x: x[0], w.wcs_world2pix(ra, dec, 1))
+	x, y = map(lambda x: x.item(), w.wcs_world2pix(ra, dec, 1))
 	x_max = hdr['NAXIS1']
 	y_max = hdr['NAXIS2']
 	if x >= 0 and x < x_max and y >= 0 and y < y_max:
