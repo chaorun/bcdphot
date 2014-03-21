@@ -5,7 +5,7 @@ High precision BCD photometry pipeline for large Spitzer surveys,
 optimized for use on multicore machines. 
 
 Applies the corrections for the pixel phase effect as well as the
-array location-dependent gain variations, both of which must be
+array location-dependent photometric effect, both of which must be
 applied at the individual BCD level instead of on a single mosaic.
 See [here](http://irsa.ipac.caltech.edu/data/SPITZER/docs/irac/warmimgcharacteristics/) for details.
 
