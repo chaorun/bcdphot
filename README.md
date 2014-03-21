@@ -13,10 +13,10 @@ Supports IRAC's HDR mode, and utilizes the Spitzer Science Center
 pipeline imask files to discard contaminated measurements.
 
 Requirements:
--numpy
--scipy
--multiprocessing
--simplejson
--pyyaml
--pyfits
--pywcs
+- numpy
+- scipy
+- multiprocessing
+- simplejson
+- pyyaml
+- pyfits
+- pywcs
