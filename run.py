@@ -77,17 +77,17 @@ if len(os.listdir(out_dir)) is 0:
 	bcd_paths = list(find_files(data_dir, bcd_suffix))
 	bcd_dict = {i.split('/')[-1]:i for i in bcd_paths}
 	with open(out_dir+'/bcd_dict.json','w') as w:
-		json.dump(bcd_dict,w,indent=' '*4)
+		json.dump(bcd_dict, w, indent=' '*4)
 	# do the same for UNC files
 	unc_paths = list(find_files(data_dir, unc_suffix))
 	unc_dict = {i.split('/')[-1]:i for i in unc_paths}
 	with open(out_dir+'/unc_dict.json','w') as w:
-		json.dump(unc_dict,w,indent=' '*4)
+		json.dump(unc_dict, w, indent=' '*4)
 	# do the same for MSK files
 	msk_paths = list(find_files(data_dir, '*_bimsk.fits'))
 	msk_dict = {i.split('/')[-1]:i for i in msk_paths}
 	with open(out_dir+'/msk_dict.json','w') as w:
-		json.dump(msk_dict,w,indent=' '*4)
+		json.dump(msk_dict, w, indent=' '*4)
 
 else:
 
@@ -136,15 +136,15 @@ for region in regions:
 		msk_dict_path = work_dir+'/msk_dict.json'
 
 		with open(bcd_dict_path,'w') as w:
-			json.dump(bcd_dict_subset,w,indent=' '*4)
+			json.dump(bcd_dict_subset, w, indent=' '*4)
 		print('created: '+bcd_dict_path)
 
 		with open(unc_dict_path,'w') as w:
-			json.dump(unc_dict_subset,w,indent=' '*4)
+			json.dump(unc_dict_subset, w, indent=' '*4)
 		print('created: '+unc_dict_path)
 
 		with open(msk_dict_path,'w') as w:
-			json.dump(msk_dict_subset,w,indent=' '*4)
+			json.dump(msk_dict_subset, w, indent=' '*4)
 		print('created: '+msk_dict_path)
 
 		metadata = {'name':name, 'data_dir':data_dir, 'work_dir':work_dir,
@@ -159,7 +159,7 @@ for region in regions:
 			metadata['hdr'] = hdr
 		metadata_path = work_dir+'/metadata.json'
 		with open(metadata_path,'w') as w:
-			json.dump(metadata,w,indent=' '*4)
+			json.dump(metadata, w, indent=' '*4)
 		print('created: '+metadata_path)
 
 # if bcd_list.json files exist, assume valid and don't run get_bcd_list
@@ -174,33 +174,33 @@ if len(list(find_files(out_dir, 'bcd_list.json'))) is 0:
 		get_bcd_list(metadata)
 
 # if source_list.json files exist, assume valid and don't run map_bcd_sources
-if len(list(find_files(out_dir,'source_list.json'))) is 0:
+if len(list(find_files(out_dir, 'source_list.json'))) is 0:
 	# now run map_to_sources to reverse the mapping such that each BCD has a 
 	# list of its associated sources
 	# filepaths = glob.glob(out_dir+'/*/*/*/bcd_list.json')
 	print('mapping BCDs to their sources...')
-	filepaths = list(find_files(out_dir,'bcd_list.json'))
-	pool.map(map_bcd_sources,filepaths)
+	filepaths = list(find_files(out_dir, 'bcd_list.json'))
+	pool.map(map_bcd_sources, filepaths)
 
 # now run get_bcd_phot to compute photometry on all the sources 
 # source_list_paths = glob.glob(out_dir+'/*/*/*/source_list.json')
 print('getting photometry from IDL...')
-filepaths = list(find_files(out_dir,'source_list.json'))
-pool.map(get_bcd_phot,filepaths)
+filepaths = list(find_files(out_dir, 'source_list.json'))
+pool.map(get_bcd_phot, filepaths)
 
 # now run write_mean_groups to produce ch1/ch2,long/short catalogs
 # phot_group_paths = glob.glob('bcd_dirs/*/*/phot_groups.json')
 print('combining multiple measurements of sources...')
-filepaths = list(find_files(out_dir,'phot_groups.json'))
-pool.map(write_mean_groups,filepaths)
+filepaths = list(find_files(out_dir, 'phot_groups.json'))
+pool.map(write_mean_groups, filepaths)
 
 # now run save_single_channel to get individual channel/exposure catalogs
 print('writing single channel catalogs...')
-filepaths = list(find_files(out_dir,'phot_groups_mean.json'))
-pool.map(save_single_channel,filepaths)
+filepaths = list(find_files(out_dir, 'phot_groups_mean.json'))
+pool.map(save_single_channel, filepaths)
 
 # now apply the array location dependent correction
 print('applying array location correction...')
-filepaths = list(find_files(out_dir,'phot_groups_mean.json'))
+filepaths = list(find_files(out_dir, 'phot_groups_mean.json'))
 args_list = array_location_setup(filepaths)
-pool.map(apply_array_location_correction,args_list)
+pool.map(apply_array_location_correction, args_list)
