@@ -4,7 +4,6 @@ import os
 import sys
 import glob
 import pyfits
-import wcslib
 import numpy as np
 import simplejson as json
 import subprocess, shlex
