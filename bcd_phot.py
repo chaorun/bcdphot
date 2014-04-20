@@ -249,13 +249,11 @@ def apply_array_location_correction(args_list):
 	dec2 = np.array([i['dec'] for i in ch2])
 
 	# match ch1/ch2 RA/Dec
-	idx1, idx2, ds = spherematch(ra1, dec1, ra2, dec2, tolerance=1/3600.)
+	idx1, idx2, ds = spherematch(ra1, dec1, ra2, dec2, tolerance=2/3600.)
 	ch1, ch2 = ch1[idx1], ch2[idx2]
 
 	# get indices for the blue sources
 	f1, f2 = [i['flux'] for i in ch1], [i['flux'] for i in ch2]
-
-	# f1, f2 = [i['flux_uncorrected'] for i in ch1], [i['flux_uncorrected'] for i in ch2]
 	blue = np.array(f1, copy=False) > np.array(f2, copy=False)
 
 	# now loop through the matched sources and apply corrections
@@ -287,6 +285,71 @@ def apply_array_location_correction(args_list):
 		row = [ra, dec, flux1, unc1, flux2, unc2, n_obs1, n_obs2]
 		catalog.append(row)
 	save_catalog(catalog, out_path)
+
+	# now create single channel catalogs with the correction applied
+	# to any sources with measurements in both channels
+	ch1 = np.array(json.load(open(ch1_path)))
+	ch2 = np.array(json.load(open(ch2_path)))
+	f1, f2 = [i['flux'] for i in ch1], [i['flux'] for i in ch2]
+	u1, u2 = [i['unc'] for i in ch1], [i['unc'] for i in ch2]
+
+	# for ch1
+	cat_idx = 0
+	catalog1 = []
+	for i in range(ch1.size):
+		idnum, ra, dec = ch1[i]['id'], ch1[i]['ra'], ch2[i]['dec']
+		n_obs = len(ch1[i]['group'])
+		if i in idx1:
+			flux, unc = catalog[cat_idx][2:4]
+			cat_idx += 1
+		else:
+			flux, unc = f1[i], u1[i]
+		row = [idnum, ra, dec, flux, unc, n_obs]
+	catalog1.append(row)
+
+	# write ch1 catalog to disk
+	work_dir = ch1_path.split('phot_groups_mean.json')[0]
+	meta = json.load(open(work_dir+'/metadata.json'))
+	if 'hdr' in meta.keys():
+		out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
+			'catalog_arrayloc.txt'])
+	else:
+		out_name = '_'.join([meta['name'],meta['channel'],
+			'catalog_arrayloc.txt'])
+	out_path = '/'.join([work_dir, out_name])
+	header = 'id ra dec flux unc n_obs'
+	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
+	idx = np.argsort(catalog1[:,0])
+	np.savetxt(out_path, catalog1[idx], fmt = fmt, header = header)
+
+	# for ch2
+	cat_idx = 0
+	catalog2 = []
+	for i in range(ch2.size):
+		idnum, ra, dec = ch2[i]['id'], ch2[i]['ra'], ch2[i]['dec']
+		n_obs = len(ch2[i]['group'])
+		if i in idx2:
+			flux, unc = catalog[cat_idx][2:4]
+			cat_idx += 1
+		else:
+			flux, unc = f2[i], u2[i]
+		row = [idnum, ra, dec, flux, unc, n_obs]
+	catalog2.append(row)
+
+	# write ch2 catalog to disk
+	work_dir = ch2_path.split('phot_groups_mean.json')[0]
+	meta = json.load(open(work_dir+'/metadata.json'))
+	if 'hdr' in meta.keys():
+		out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
+			'catalog_arrayloc.txt'])
+	else:
+		out_name = '_'.join([meta['name'],meta['channel'],
+			'catalog_arrayloc.txt'])
+	out_path = '/'.join([work_dir, out_name])
+	header = 'id ra dec flux unc n_obs'
+	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
+	idx = np.argsort(catalog2[:,0])
+	np.savetxt(out_path, catalog2[idx], fmt = fmt, header = header)
 
 
 def array_location_setup(filepaths):
