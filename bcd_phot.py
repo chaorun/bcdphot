@@ -385,7 +385,6 @@ def array_location_setup(filepaths):
 		work_dir2 = ch2[i].split('/phot_groups_mean.json')[0]
 		meta2 = json.load(open(work_dir2+'/metadata.json'))
 		assert meta1['name'] == meta2['name'] 
-		assert meta1['channel'] == meta2['channel']
 		out_dir = '/'.join( [ meta1['out_dir'], meta1['name'] ] )
 		if 'hdr' in meta1.keys():
 			assert meta1['hdr'] == meta2['hdr']
