@@ -355,6 +355,7 @@ def apply_array_location_correction(args_list):
 	np.savetxt(out_path, catalog2[idx], fmt = fmt, header = header)
 	print("created file: {}".format(out_path))
 
+
 def array_location_setup(filepaths):
 	
 	"""
@@ -380,15 +381,15 @@ def array_location_setup(filepaths):
 	# construct file paths for matched ch1/ch2 catalogs
 	for i in range(len(ch1)):
 		work_dir1 = ch1[i].split('/phot_groups_mean.json')[0]
-		meta1 = json.load(open(work_dir+'/metadata.json'))
+		meta1 = json.load(open(work_dir1+'/metadata.json'))
 		work_dir2 = ch2[i].split('/phot_groups_mean.json')[0]
-		meta2 = json.load(open(work_dir+'/metadata.json'))
-		out_dir = '/'.join( [ metadata['out_dir'], metadata['name'] ] )
+		meta2 = json.load(open(work_dir2+'/metadata.json'))
 		assert meta1['name'] == meta2['name'] 
 		assert meta1['channel'] == meta2['channel']
+		out_dir = '/'.join( [ meta1['out_dir'], meta1['name'] ] )
 		if 'hdr' in meta1.keys():
 			assert meta1['hdr'] == meta2['hdr']
-			out_name = '_'.join([meta1['name'],meta1['hdr'],
+			out_name = '_'.join([meta1['name'], meta1['hdr'],
 				'matched_catalog.txt'])
 		else:
 			out_name = '_'.join([meta1['name'],'matched_catalog.txt'])
