@@ -331,7 +331,7 @@ def apply_array_location_correction(args_list):
 		idnum, ra, dec = int(ch2[i]['id']), ch2[i]['ra'], ch2[i]['dec']
 		n_obs = len(ch2[i]['group'])
 		if i in idx2:
-			flux, unc = catalog[cat_idx][2:4]
+			flux, unc = catalog[cat_idx][4:6]
 			cat_idx += 1
 		else:
 			flux, unc = f2[i], u2[i]
