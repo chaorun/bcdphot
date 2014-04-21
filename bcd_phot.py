@@ -305,7 +305,7 @@ def apply_array_location_correction(args_list):
 		else:
 			flux, unc = f1[i], u1[i]
 		row = [idnum, ra, dec, flux, unc, n_obs]
-	catalog1.append(row)
+		catalog1.append(row)
 	catalog1 = np.array(catalog1, copy=False)
 
 	# write ch1 catalog to disk
@@ -322,6 +322,7 @@ def apply_array_location_correction(args_list):
 	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
 	idx = np.argsort(catalog1[:,0])
 	np.savetxt(out_path, catalog1[idx], fmt = fmt, header = header)
+	print("created file: {}".format(out_path))
 
 	# for ch2
 	cat_idx = 0
@@ -335,7 +336,7 @@ def apply_array_location_correction(args_list):
 		else:
 			flux, unc = f2[i], u2[i]
 		row = [idnum, ra, dec, flux, unc, n_obs]
-	catalog2.append(row)
+		catalog2.append(row)
 	catalog2 = np.array(catalog2, copy=False)
 
 	# write ch2 catalog to disk
@@ -352,7 +353,7 @@ def apply_array_location_correction(args_list):
 	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
 	idx = np.argsort(catalog2[:,0])
 	np.savetxt(out_path, catalog2[idx], fmt = fmt, header = header)
-
+	print("created file: {}".format(out_path))
 
 def array_location_setup(filepaths):
 	
