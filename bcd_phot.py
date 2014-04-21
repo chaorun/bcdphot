@@ -309,7 +309,7 @@ def apply_array_location_correction(args_list):
 	catalog1 = np.array(catalog1, copy=False)
 
 	# write ch1 catalog to disk
-	work_dir = ch1_path.split('phot_groups_mean.json')[0]
+	work_dir = ch1_path.split('/phot_groups_mean.json')[0]
 	meta = json.load(open(work_dir+'/metadata.json'))
 	if 'hdr' in meta.keys():
 		out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
@@ -340,7 +340,7 @@ def apply_array_location_correction(args_list):
 	catalog2 = np.array(catalog2, copy=False)
 
 	# write ch2 catalog to disk
-	work_dir = ch2_path.split('phot_groups_mean.json')[0]
+	work_dir = ch2_path.split('/phot_groups_mean.json')[0]
 	meta = json.load(open(work_dir+'/metadata.json'))
 	if 'hdr' in meta.keys():
 		out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
