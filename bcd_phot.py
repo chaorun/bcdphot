@@ -306,6 +306,7 @@ def apply_array_location_correction(args_list):
 			flux, unc = f1[i], u1[i]
 		row = [idnum, ra, dec, flux, unc, n_obs]
 	catalog1.append(row)
+	catalog1 = np.array(catalog1, copy=False)
 
 	# write ch1 catalog to disk
 	work_dir = ch1_path.split('phot_groups_mean.json')[0]
@@ -335,6 +336,7 @@ def apply_array_location_correction(args_list):
 			flux, unc = f2[i], u2[i]
 		row = [idnum, ra, dec, flux, unc, n_obs]
 	catalog2.append(row)
+	catalog2 = np.array(catalog2, copy=False)
 
 	# write ch2 catalog to disk
 	work_dir = ch2_path.split('phot_groups_mean.json')[0]
