@@ -297,7 +297,7 @@ def apply_array_location_correction(args_list):
 	cat_idx = 0
 	catalog1 = []
 	for i in range(ch1.size):
-		idnum, ra, dec = ch1[i]['id'], ch1[i]['ra'], ch2[i]['dec']
+		idnum, ra, dec = int(ch1[i]['id']), ch1[i]['ra'], ch1[i]['dec']
 		n_obs = len(ch1[i]['group'])
 		if i in idx1:
 			flux, unc = catalog[cat_idx][2:4]
@@ -326,7 +326,7 @@ def apply_array_location_correction(args_list):
 	cat_idx = 0
 	catalog2 = []
 	for i in range(ch2.size):
-		idnum, ra, dec = ch2[i]['id'], ch2[i]['ra'], ch2[i]['dec']
+		idnum, ra, dec = int(ch2[i]['id']), ch2[i]['ra'], ch2[i]['dec']
 		n_obs = len(ch2[i]['group'])
 		if i in idx2:
 			flux, unc = catalog[cat_idx][2:4]
