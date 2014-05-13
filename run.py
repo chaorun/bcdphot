@@ -205,7 +205,7 @@ pool.map(calculate_full_uncertainties, filepaths)
 # create catalogs - since this step operates on fully corrected data
 # with full uncertainties, this is where we apply a basic sigma-clip
 print('creating catalogs...')
-filepaths = list(find_files(out_dir, 'phot_groups_final.json'))
+filepaths = list(find_files(out_dir, 'catalog.txt'))
 pool.map(create_catalogs, filepaths)
 
 

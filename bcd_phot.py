@@ -240,22 +240,108 @@ def apply_array_location_correction(phot_groups_filepath):
 	"""
 
 	work_dir = phot_groups_filepath.split('/phot_groups.json')[0]
-	metadata = json.load(open(work_dir+'/metadata.json'))
+	meta = json.load(open(work_dir+'/metadata.json'))
+
 	# read in the array location correction values
-	if metadata['channel'] == '1':
+	if meta['channel'] is '1':
 		arrloc = pyfits.open('ch1_photcorr_ap_5.fits')[0].data
-	elif metadata['channel'] == '2':
+	elif meta['channel'] is '2':
 		arrloc = pyfits.open('ch2_photcorr_ap_5.fits')[0].data
+
 	# read in the photometry JSON files
 	ch = json.load(open(phot_groups_filepath))
-	# define local correction function
+
+	# apply correction
 	for key in ch:
 		for obs in ch[key]:
 			x, y = obs[4:6]
 			obs[6:] = [i * arrloc[x,y] for i in obs[6:]]
+
 	# write to disk
 	out_path = phot_groups_filepath.replace('phot_groups.json', 
-		'phot_groups_arrayloc.json')	
+		'phot_groups_arrayloc.json')
 	with open(out_path,'w') as w:
 		json.dump(ch, w, indent=4*' ')
+	print('created file: '+out_path)
+
+
+def calculate_full_uncertainties(phot_groups_filepath):
+
+	"""
+	Reads phot_groups.json or phot_groups_arrayloc.json files
+	and calculates the full uncertainties including both systematic
+	and photometric noise sources. The calculation is as follows:
+
+		sigma_phot = sqrt(sum(deltaF_i**2)) / n_obs
+		sigma_sys = median MAD of 99th percentile brightest flux w/ n_obs > 2
+		sigma_tot = sqrt(sigma_phot**2 + sigma_sys**2)
+
+	where MAD = median absolute deviation = median(abs(x-median(x)))
+
+	Outputs a catalog with the mean flux and full uncertainty values
+	"""
+
+	work_dir = phot_groups_filepath.split('/phot_groups_arrayloc.json')[0]
+	meta = json.load(open(work_dir+'/metadata.json'))
+
+	# read in the photometry JSON files
+	ch = json.load(open(phot_groups_filepath))
+
+	# calculate the systematic uncertainties
+	flux, n_obs, mad = [], [], []
+	for key in ch:
+		flux_i = [obs[6] for obs in ch[key]]
+		flux.append( np.mean( flux_i ) )
+		n_obs.append( len(ch[key]) )
+		mad.append( np.median(np.abs(flux_i-np.median(flux_i))) )
+	flux, n_obs, mad = map(np.array, (flux, n_obs, mad))
+	flux_n2 = flux[n_obs > 1]
+	idx = np.argsort(flux_n2)
+	min_flux = flux_n2[idx][-100]
+	brightest = (flux >= min_flux) & (n_obs > 1)
+	# brightest = (flux > np.percentile(flux, 99)) & (n_obs > 1)
+	sigma_sys = np.median(mad[brightest] / flux[brightest])
+
+	# print the systematic uncertainty to stdout
+	if 'hdr' in meta.keys():
+		msg = """region: {}, channel: {}, exposure: {}
+		systematic uncertainty: {}
+			calculated from {} datapoints"""
+		print(msg.format(meta['name'], meta['channel'], meta['hdr'],
+			sigma_sys, brightest.sum()))
+	else:
+		msg = """region: {}, channel: {}
+		systematic uncertainty: {}
+			calculated from {} datapoints"""
+		print(msg.format(meta['name'], meta['channel'], 
+			sigma_sys, brightest.sum()))
+
+	# calculate the photometric uncertainties
+	sigma_phot = []
+	for key in ch:
+		phot_unc = np.array( [obs[7]/obs[6] for obs in ch[key]] )
+		sigma_phot.append( np.sqrt(np.sum(phot_unc**2)) / phot_unc.size )
+	sigma_phot = np.array(sigma_phot)
+
+	# calculate full uncertainties
+	sigma_tot = np.sqrt(sigma_phot**2 + sigma_sys**2)
+
+	# write to disk
+	# columns: id, ra, dec, flux, unc, n_obs
+	ids, ra, dec = [], [], []
+	for key in ch:
+		ids.append(int(key))
+		ra.append(np.mean([obs[2] for obs in ch[key]]))
+		dec.append(np.mean([obs[3] for obs in ch[key]]))
+	data = np.c_[ids, ra, dec, flux, flux*sigma_tot, n_obs]
+	header = 'id ra dec flux unc n_obs'
+	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
+	idx = np.argsort(ids)
+	if 'hdr' in meta.keys():
+		out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
+			'catalog.txt'])
+	else:
+		out_name = '_'.join([meta['name'],meta['channel'],'catalog.txt'])
+	out_path = '/'.join([work_dir,out_name])
+	np.savetxt(out_path, data[idx], fmt = fmt, header = header)
 	print('created file: '+out_path)
