@@ -12,6 +12,7 @@ from bcd_list import map_bcd_sources
 from bcd_phot import get_bcd_phot 
 from bcd_phot import apply_array_location_correction
 from bcd_phot import calculate_full_uncertainties
+from bcd_phot import cull_bad_measurements
 from bcd_phot import create_catalogs
 
 
@@ -55,6 +56,12 @@ idl_path = params['idl_path']
 # too low then the pipeline will not take advantage of additional data
 # available for some sources.
 max_cov = params['max_cov']
+
+# get the minimum SNR value for an individual measurement to be kept
+min_snr = params['min_snr']
+
+# get the maximum distance from input RA/Dec to centroid position [arcsec]
+max_dist = params['max_dist']
 
 # this is the master project directory containing the data, input file,
 # and subdirectory containing the RA/Dec source list files
@@ -153,7 +160,8 @@ for region in regions:
 			'msk_dict_path':msk_dict_path,
 			'aors':aors, 'channel':ch, 
 			'cbcd':params['cbcd'], 'mask':params['mask'],
-			'idl_path': idl_path, 'max_cov': max_cov}
+			'idl_path': idl_path, 'max_cov': max_cov,
+			'min_snr':min_snr, 'max_dist':max_dist}
 		if is_hdr:
 			metadata['hdr'] = hdr
 		metadata_path = work_dir+'/metadata.json'
@@ -187,9 +195,16 @@ print('getting photometry from IDL...')
 filepaths = list(find_files(out_dir, 'source_list.json'))
 pool.map(get_bcd_phot, filepaths)
 
+
+# cull bad individual measurements from the groups of measurements
+# of each source using SNR and proximity cutoffs
+print('culling bad measurements...')
+filepaths = list(find_files(out_dir, 'phot_groups.json'))
+pool.map(cull_bad_measurements, filepaths)
+
 # apply array location correction to phot_groups.json files
 print('applying array location correction...')
-filepaths = list(find_files(out_dir, 'phot_groups.json'))
+filepaths = list(find_files(out_dir, 'phot_groups_culled.json'))
 pool.map(apply_array_location_correction, filepaths)
 
 # optional: un-correct photometry of red sources, by matching ch1/ch2

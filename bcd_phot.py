@@ -147,87 +147,53 @@ def get_bcd_phot(source_list_path):
 	print('created file: '+outfile)
 
 
-# def collapse_groups(phot_groups_dict):
-	
-# 	"""
-# 	Computes the average RA, Dec, and flux, and the quadrature sum of the
-# 	uncertainties for a group of photometric measurements of the same source,
-# 	then returns a list of groups and their calculations.
-# 	"""
-	
-# 	lst = []
-# 	for key, value in phot_groups_dict.items():
-# 		group = np.array(value)
-# 		col_means = np.mean(group,0)
+def cull_bad_measurements(phot_groups_filepath):
 
-# 		# take the mean RA, Dec, and flux
-# 		ra, dec = col_means[2:4]
-# 		flux = col_means[6]
-# 		flux_uncorrected = col_means[8]
+	"""
+	Eliminates bad measurements from the groups of measurements
+	for each source. Uses a SNR cutoff and a proximity cutoff, 
+	such that only sources with SNR above min_snr and with centroids
+	less than max_dist from the input RA/Dec position will survive.
+	max_dist is in units of arcsec.
+	"""
 
-# 		# sum the uncertainties in quadrature
-# 		unc = np.sqrt(np.sum(group[:,7]**2))
-# 		d = dict(id=key,ra=ra,dec=dec,flux=flux,unc=unc,group=value,
-# 			flux_uncorrected=flux_uncorrected)
-# 		lst.append(d)
-# 	return lst
+	work_dir = phot_groups_filepath.split('/phot_groups.json')[0]
+	meta = json.load(open(work_dir+'/metadata.json'))
 
+	min_snr = meta['min_snr']
+	max_dist = meta['max_dist']
 
-# def write_mean_groups(phot_groups_path):
-	
-# 	"""
-# 	Reads the output of get_bcd_phot() 'phot_groups.json' and collapses the
-# 	groups of measurements to a single row per source
-# 	"""
-	
-# 	phot_groups_dict = json.load(open(phot_groups_path))
-# 	work_dir = phot_groups_path.split('/phot_groups.json')[0]
-# 	phot_groups_mean = collapse_groups(phot_groups_dict)
-# 	outfile = work_dir+'/phot_groups_mean.json'
-# 	with open(outfile, 'w') as w:
-# 		json.dump(phot_groups_mean, w, indent=' '*4)
+	# read in the photometry JSON files
+	ch = json.load(open(phot_groups_filepath))
 
-# def save_single_channel(phot_groups_mean_path):
-	
-# 	"""
-# 	Creates a single channel/exposure catalog (no matching to other channel),
-# 	and saves to disk.
-# 	"""
-	
-# 	ch = json.load(open(phot_groups_mean_path))
-# 	idnum = np.array( [ int(i['id']) for i in ch ] )
-# 	ra = np.array( [ float(i['ra']) for i in ch ] )
-# 	dec = np.array( [ float(i['dec']) for i in ch ] )
-# 	flux = np.array( [ float(i['flux']) for i in ch ] )
-# 	flux_uncorrected = np.array( [ float(i['flux_uncorrected']) for i in ch ] )
-# 	unc = np.array( [ float(i['unc']) for i in ch ] )
-# 	n_obs = np.array( [ len(i['group']) for i in ch ] )
-# 	catalog = np.c_[idnum,ra,dec,flux,unc,flux_uncorrected,n_obs]
-# 	work_dir = phot_groups_mean_path.split('/phot_groups_mean.json')[0]
-# 	meta = json.load(open(work_dir+'/metadata.json'))
-# 	if 'hdr' in meta.keys():
-# 		out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
-# 			'catalog.txt'])
-# 	else:
-# 		out_name = '_'.join([meta['name'],meta['channel'],'catalog.txt'])
-# 	out_path = '/'.join([work_dir,out_name])
-# 	header = 'id ra dec flux unc flux_uncor n_obs'
-# 	fmt = ['%i']+['%0.8f']*2+['%.4e']*3+['%i']
-# 	idx = np.argsort(catalog[:,0])
-# 	np.savetxt(out_path, catalog[idx], fmt = fmt, header = header)
-# 	print("created file: "+out_path)
+	# loop through the sources and look for measurements to cull
+	rejected = {}
+	for key in ch:
+		good, bad = [], []
+		for obs in ch[key]:
+			ra_inp, dec_inp = obs[:2]
+			ra_cnt, dec_cnt = obs[2:4]
+			snr = obs[6]/obs[7]
+			d = great_circle_distance(ra_inp, dec_inp, ra_cnt, dec_cnt) * 3600
+			if snr > min_snr and d < max_dist:
+				good.append(obs)
+			else:
+				bad.append(obs)
+		ch[key] = good
+		if len(bad) > 0:
+			rejected[key] = bad
 
-
-# def save_catalog(catalog, out_path):
-	
-# 	"""
-# 	Helper function for saving a matched catalog.
-# 	"""
-
-# 	header = 'ra dec ch1_flux ch1_unc '+\
-# 		'ch2_flux ch2_unc n_obs1 n_obs2'
-# 	np.savetxt(out_path, catalog, fmt = ['%.8f']*6+['%i']*2, header = header)
-# 	print('created file: '+out_path)
+	# write to disk
+	out_path = phot_groups_filepath.replace('phot_groups.json', 
+		'phot_groups_culled.json')
+	with open(out_path,'w') as w:
+		json.dump(ch, w, indent=4*' ')
+	print('created file: '+out_path)
+	out_path = phot_groups_filepath.replace('phot_groups.json', 
+		'phot_groups_rejected.json')
+	with open(out_path,'w') as w:
+		json.dump(rejected, w, indent=4*' ')
+	print('created file: '+out_path)
 
 
 def apply_array_location_correction(phot_groups_filepath):
@@ -295,10 +261,10 @@ def calculate_full_uncertainties(phot_groups_filepath):
 		n_obs.append( len(ch[key]) )
 		mad.append( np.median(np.abs(flux_i-np.median(flux_i))) )
 	flux, n_obs, mad = map(np.array, (flux, n_obs, mad))
-	flux_n2 = flux[n_obs > 1]
+	flux_n2 = flux[n_obs > 2]
 	idx = np.argsort(flux_n2)
 	min_flux = flux_n2[idx][-100]
-	brightest = (flux >= min_flux) & (n_obs > 1)
+	brightest = (flux >= min_flux) & (n_obs > 2)
 	# brightest = (flux > np.percentile(flux, 99)) & (n_obs > 1)
 	sigma_sys = np.median(mad[brightest] / flux[brightest])
 
@@ -306,15 +272,17 @@ def calculate_full_uncertainties(phot_groups_filepath):
 	if 'hdr' in meta.keys():
 		msg = """region: {}, channel: {}, exposure: {}
 		systematic uncertainty: {}
-			calculated from {} datapoints"""
+		calculated from {} datapoints
+		average number of measurements: {}"""
 		print(msg.format(meta['name'], meta['channel'], meta['hdr'],
-			sigma_sys, brightest.sum()))
+			sigma_sys, brightest.sum(), n_obs[brightest].mean()))
 	else:
 		msg = """region: {}, channel: {}
 		systematic uncertainty: {}
-			calculated from {} datapoints"""
+		calculated from {} datapoints
+		average number of measurements: {}"""
 		print(msg.format(meta['name'], meta['channel'], 
-			sigma_sys, brightest.sum()))
+			sigma_sys, brightest.sum(), n_obs[brightest].mean()))
 
 	# calculate the photometric uncertainties
 	sigma_phot = []
@@ -335,7 +303,7 @@ def calculate_full_uncertainties(phot_groups_filepath):
 		dec.append(np.mean([obs[3] for obs in ch[key]]))
 	data = np.c_[ids, ra, dec, flux, flux*sigma_tot, n_obs]
 	header = 'id ra dec flux unc n_obs'
-	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
+	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']	
 	idx = np.argsort(ids)
 	if 'hdr' in meta.keys():
 		out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
