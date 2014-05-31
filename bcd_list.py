@@ -139,10 +139,12 @@ def get_bcd_list(metadata):
 
 
 def map_bcd_sources(filepath):
+
 	"""
 	Reads JSON bcd list file, gets the set of BCD files,
 	then associates each with a set of RA/Dec coordinates (and source ID).
 	"""
+
 	sources = json.load(open(filepath))
 
 	list2d = [i['files'] for i in sources]

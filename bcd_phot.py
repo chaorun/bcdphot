@@ -7,6 +7,7 @@ import pyfits
 import numpy as np
 import simplejson as json
 import subprocess, shlex
+import statsmodels.api as sm
 from util import get_filepaths
 from util import spherical_to_cartesian
 from util import radec_to_coords
@@ -168,6 +169,7 @@ def cull_bad_measurements(phot_groups_filepath):
 
 	# loop through the sources and look for measurements to cull
 	rejected = {}
+	badkeys = []
 	for key in ch:
 		good, bad = [], []
 		for obs in ch[key]:
@@ -179,9 +181,15 @@ def cull_bad_measurements(phot_groups_filepath):
 				good.append(obs)
 			else:
 				bad.append(obs)
-		ch[key] = good
+		if len(good) > 0:
+			ch[key] = good
+		else:
+			badkeys.append(key)
 		if len(bad) > 0:
 			rejected[key] = bad
+	# eliminate source altogether if all its measurements get culled
+	for key in badkeys:
+		ch.pop(key)
 
 	# write to disk
 	out_path = phot_groups_filepath.replace('phot_groups.json', 
@@ -205,7 +213,7 @@ def apply_array_location_correction(phot_groups_filepath):
 	'phot_groups_arrayloc.json'
 	"""
 
-	work_dir = phot_groups_filepath.split('/phot_groups.json')[0]
+	work_dir = phot_groups_filepath.split('/phot_groups_culled.json')[0]
 	meta = json.load(open(work_dir+'/metadata.json'))
 
 	# read in the array location correction values
@@ -224,7 +232,7 @@ def apply_array_location_correction(phot_groups_filepath):
 			obs[6:] = [i * arrloc[x,y] for i in obs[6:]]
 
 	# write to disk
-	out_path = phot_groups_filepath.replace('phot_groups.json', 
+	out_path = phot_groups_filepath.replace('phot_groups_culled.json', 
 		'phot_groups_arrayloc.json')
 	with open(out_path,'w') as w:
 		json.dump(ch, w, indent=4*' ')
@@ -306,10 +314,75 @@ def calculate_full_uncertainties(phot_groups_filepath):
 	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']	
 	idx = np.argsort(ids)
 	if 'hdr' in meta.keys():
-		out_name = '_'.join([meta['name'],meta['channel'],meta['hdr'],
+		out_name = '_'.join([meta['name'], meta['channel'], meta['hdr'],
 			'catalog.txt'])
 	else:
-		out_name = '_'.join([meta['name'],meta['channel'],'catalog.txt'])
-	out_path = '/'.join([work_dir,out_name])
+		out_name = '_'.join([meta['name'], meta['channel'], 'catalog.txt'])
+	out_path = '/'.join([work_dir, out_name])
+	np.savetxt(out_path, data[idx], fmt = fmt, header = header)
+	print('created file: '+out_path)
+
+
+def combine_hdr_catalogs(catalog_filepaths_tuple):
+
+	"""
+	Takes a tuple containing the filepaths to the short and long exposure
+	single-channel catalogs for a given region and channel. The result is
+	a single catalog containing the union of all sources in both short and
+	long exposure catalogs, with the short exposure measurements being used
+	for the brighter sources, and the long exposure measurements used for 
+	the fainter sources. The cutoff between the two is determined by the 
+	parameter 'hdr_cutoff' in the metadata file and should be set to the 
+	saturation limit for the long exposure data (there are actually 2 
+	parameters, one for each channel: hdr_cutoff_ch1, hdr_cutoff_ch2).
+	"""
+
+	# read in the data
+	long_file, short_file = catalog_filepaths_tuple
+	work_dir = '/'.join(short_file.split('/')[:-1])
+	meta = json.load(open(work_dir+'/metadata.json'))
+	header = 'id ra dec flux unc n_obs'
+	names = header.split()
+	long_cat = np.recfromtxt(long_file, names=names)
+	short_cat = np.recfromtxt(short_file, names=names)
+
+	# fit a line to short ~ long
+	idx_s = short_cat.flux < meta['short_cutoff']
+	idx_l = long_cat.flux < meta['long_cutoff']
+	short_flux = short_cat.flux[idx_s]
+	long_flux = long_cat.flux[idx_l]
+	short_ra, short_dec = short_cat.ra[idx_s], short_cat.dec[idx_s]
+	long_ra, long_dec = long_cat.ra[idx_l], long_cat.dec[idx_l]
+	idx1, idx2, ds = spherematch(short_ra, short_dec, long_ra, 
+		long_dec, tolerance=1/3600.)
+	y = short_flux[idx1]
+	X = long_flux[idx2]
+	model = sm.OLS(y,X)
+	result = model.fit()
+	slope = result.params[0]
+
+	# divide short flux/unc by the slope so that it agrees with the long flux
+	print('region {} correction value: {}'.format(meta['name'],slope))
+	short_cat.flux /= slope
+	short_cat.unc /= slope
+
+	# get everything brighter than the cutoff in short and combine with long
+	idx_faint = long_cat.flux < meta['long_cutoff']
+	idx_bright = short_cat.flux > meta['long_cutoff']
+	data = np.concatenate([long_cat[idx_faint],short_cat[idx_bright]])
+
+	# apply global sigma clip using the value from setup.yaml
+	snr = data['flux'] / data['unc']
+	good = snr > 3
+	data = data[good]
+
+	# write to disk
+	header = 'ra dec flux unc n_obs'
+	data = data[header.split()]
+	idx = np.argsort(data['ra'])
+	fmt = ['%0.8f']*2+['%.4e']*2+['%i']
+	out_name = '_'.join([meta['name'], meta['channel'], 
+		'combined_hdr_catalog.txt'])
+	out_path = '/'.join([work_dir, out_name])
 	np.savetxt(out_path, data[idx], fmt = fmt, header = header)
 	print('created file: '+out_path)

@@ -13,7 +13,7 @@ from bcd_phot import get_bcd_phot
 from bcd_phot import apply_array_location_correction
 from bcd_phot import calculate_full_uncertainties
 from bcd_phot import cull_bad_measurements
-from bcd_phot import create_catalogs
+from bcd_phot import combine_hdr_catalogs
 
 
 # instantiate the pool for parallel processing
@@ -161,8 +161,16 @@ for region in regions:
 			'aors':aors, 'channel':ch, 
 			'cbcd':params['cbcd'], 'mask':params['mask'],
 			'idl_path': idl_path, 'max_cov': max_cov,
-			'min_snr':min_snr, 'max_dist':max_dist}
+			'min_snr':min_snr, 'max_dist':max_dist,
+			'sigma_clip':params['sigma_clip']
+			}
 		if is_hdr:
+			if ch == '1':
+				metadata['long_cutoff'] = params['long_cutoff_ch1']
+				metadata['short_cutoff'] = params['short_cutoff_ch1']
+			elif ch == '2':
+				metadata['long_cutoff'] = params['long_cutoff_ch2']
+				metadata['short_cutoff'] = params['short_cutoff_ch2']
 			metadata['hdr'] = hdr
 		metadata_path = work_dir+'/metadata.json'
 		with open(metadata_path,'w') as w:
@@ -220,8 +228,14 @@ pool.map(calculate_full_uncertainties, filepaths)
 # create catalogs - since this step operates on fully corrected data
 # with full uncertainties, this is where we apply a basic sigma-clip
 print('creating catalogs...')
-filepaths = list(find_files(out_dir, 'catalog.txt'))
-pool.map(create_catalogs, filepaths)
+filepaths_long = list(find_files(out_dir, '*long_catalog.txt'))
+filepaths_short = list(find_files(out_dir, '*short_catalog.txt'))
+ch1long = [i for i in filepaths_long if '_1_' in i]
+ch2long = [i for i in filepaths_long if '_2_' in i]
+ch1short = [i for i in filepaths_short if '_1_' in i]
+ch2short = [i for i in filepaths_short if '_2_' in i]
+pool.map(combine_hdr_catalogs, zip(ch1long, ch1short))
+pool.map(combine_hdr_catalogs, zip(ch2long, ch2short))
 
 
 
