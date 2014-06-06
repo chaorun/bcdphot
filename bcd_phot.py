@@ -377,12 +377,14 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 	data = data[good]
 
 	# write to disk
-	header = 'ra dec flux unc n_obs'
+	header = 'id ra dec flux unc n_obs'
 	data = data[header.split()]
 	idx = np.argsort(data['ra'])
-	fmt = ['%0.8f']*2+['%.4e']*2+['%i']
+	data = data[idx]
+	data['id'] = np.arange(1, data.shape[0]+1)
+	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
 	out_name = '_'.join([meta['name'], meta['channel'], 
 		'combined_hdr_catalog.txt'])
 	out_path = '/'.join(['/'.join(work_dir.split('/')[:-1]), out_name])
-	np.savetxt(out_path, data[idx], fmt = fmt, header = header)
+	np.savetxt(out_path, data, fmt = fmt, header = header)
 	print('created file: '+out_path)
