@@ -217,3 +217,26 @@ def spz_jy_to_mags(jy, ch):
 	else:
 		raise ValueError('ch must be either 1 or 2')
 	return to_mags(jy,zp)
+
+
+def ordinary_least_squares(y, X, intercept=False):
+
+	"""
+	Fits an ordinary least squares regression model. X is the
+	design matrix and y is the response variable. If intercept
+	equals True then an additional column of ones is added to the
+	design matrix so that a non-zero intercept term is allowed.
+	
+	Returns an array of the parameters where the order corresponds
+	to the columns in the design matrix (with the first being the
+	intercept term if intercept=True), or a single float for the
+	slope in the case of a 1-dimensional design matrix (vector)
+	with intercept=False.
+	"""
+
+	if intercept:
+		X = np.c_[np.ones(X.shape[0]), X]
+	if len(X.shape) == 1:
+		return np.dot( np.dot( 1. / ( np.dot(X.T, X) ), X.T), y )
+	else:
+		return np.dot( np.dot( np.linalg.inv( np.dot(X.T, X) ), X.T), y )

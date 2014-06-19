@@ -7,12 +7,12 @@ import pyfits
 import numpy as np
 import simplejson as json
 import subprocess, shlex
-import statsmodels.api as sm
 from util import get_filepaths
 from util import spherical_to_cartesian
 from util import radec_to_coords
 from util import great_circle_distance
 from util import spherematch
+from util import ordinary_least_squares
 from itertools import groupby
 
 
@@ -357,9 +357,7 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 		long_dec, tolerance=1/3600.)
 	y = short_flux[idx1]
 	X = long_flux[idx2]
-	model = sm.OLS(y,X)
-	result = model.fit()
-	slope = result.params[0]
+	slope = ordinary_least_squares(y, X)
 
 	# divide short flux/unc by the slope so that it agrees with the long flux
 	print('region {} correction value: {}'.format(meta['name'],slope))
