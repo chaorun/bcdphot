@@ -230,7 +230,7 @@ def apply_array_location_correction(phot_groups_filepath):
 			obs[6:] = [i * arrloc[x,y] for i in obs[6:]]
 
 	# write to disk
-	out_path = work_dir+'/phot_groups_arrayloc.json')
+	out_path = work_dir+'/phot_groups_arrayloc.json'
 	with open(out_path,'w') as w:
 		json.dump(ch, w, indent=4*' ')
 	print('created file: '+out_path)
