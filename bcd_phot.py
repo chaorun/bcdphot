@@ -158,7 +158,7 @@ def cull_bad_measurements(phot_groups_filepath):
 	max_dist is in units of arcsec.
 	"""
 
-	work_dir = phot_groups_filepath.split('/phot_groups.json')[0]
+	work_dir = '/'.join(phot_groups_filepath.split('/')[:-1])
 	meta = json.load(open(work_dir+'/metadata.json'))
 
 	min_snr = meta['min_snr']
@@ -192,13 +192,11 @@ def cull_bad_measurements(phot_groups_filepath):
 		ch.pop(key)
 
 	# write to disk
-	out_path = phot_groups_filepath.replace('phot_groups.json', 
-		'phot_groups_culled.json')
+	out_path = work_dir+'/phot_groups_culled.json'
 	with open(out_path,'w') as w:
 		json.dump(ch, w, indent=4*' ')
 	print('created file: '+out_path)
-	out_path = phot_groups_filepath.replace('phot_groups.json', 
-		'phot_groups_rejected.json')
+	out_path = work_dir+'/phot_groups_rejected.json'
 	with open(out_path,'w') as w:
 		json.dump(rejected, w, indent=4*' ')
 	print('created file: '+out_path)
@@ -213,7 +211,7 @@ def apply_array_location_correction(phot_groups_filepath):
 	'phot_groups_arrayloc.json'
 	"""
 
-	work_dir = phot_groups_filepath.split('/phot_groups_culled.json')[0]
+	work_dir = '/'.join(phot_groups_filepath.split('/')[:-1])
 	meta = json.load(open(work_dir+'/metadata.json'))
 
 	# read in the array location correction values
@@ -232,8 +230,7 @@ def apply_array_location_correction(phot_groups_filepath):
 			obs[6:] = [i * arrloc[x,y] for i in obs[6:]]
 
 	# write to disk
-	out_path = phot_groups_filepath.replace('phot_groups_culled.json', 
-		'phot_groups_arrayloc.json')
+	out_path = work_dir+'/phot_groups_arrayloc.json')
 	with open(out_path,'w') as w:
 		json.dump(ch, w, indent=4*' ')
 	print('created file: '+out_path)
@@ -255,7 +252,7 @@ def calculate_full_uncertainties(phot_groups_filepath):
 	Outputs a catalog with the mean flux and full uncertainty values
 	"""
 
-	work_dir = phot_groups_filepath.split('/phot_groups_arrayloc.json')[0]
+	work_dir = '/'.join(phot_groups_filepath.split('/')[:-1])
 	meta = json.load(open(work_dir+'/metadata.json'))
 
 	# read in the photometry JSON files

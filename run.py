@@ -206,13 +206,14 @@ pool.map(get_bcd_phot, filepaths)
 
 # cull bad individual measurements from the groups of measurements
 # of each source using SNR and proximity cutoffs
-print('culling bad measurements...')
-filepaths = list(find_files(out_dir, 'phot_groups.json'))
-pool.map(cull_bad_measurements, filepaths)
+# print('culling bad measurements...')
+# filepaths = list(find_files(out_dir, 'phot_groups.json'))
+# pool.map(cull_bad_measurements, filepaths)
 
 # apply array location correction to phot_groups.json files
 print('applying array location correction...')
-filepaths = list(find_files(out_dir, 'phot_groups_culled.json'))
+# filepaths = list(find_files(out_dir, 'phot_groups_culled.json'))
+filepaths = list(find_files(out_dir, 'phot_groups.json'))
 pool.map(apply_array_location_correction, filepaths)
 
 # optional: un-correct photometry of red sources, by matching ch1/ch2
