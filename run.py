@@ -162,7 +162,8 @@ for region in regions:
 			'cbcd':params['cbcd'], 'mask':params['mask'],
 			'idl_path': idl_path, 'max_cov': max_cov,
 			'min_snr':min_snr, 'max_dist':max_dist,
-			'sigma_clip':params['sigma_clip']
+			'sigma_clip':params['sigma_clip'],
+			'centroid':params['centroid']
 			}
 		if is_hdr:
 			if ch == '1':
@@ -229,15 +230,18 @@ pool.map(calculate_full_uncertainties, filepaths)
 # create catalogs - since this step operates on fully corrected data
 # with full uncertainties, this is where we apply a basic sigma-clip
 print('creating catalogs...')
-filepaths_long = list(find_files(out_dir, '*long_catalog.txt'))
-filepaths_short = list(find_files(out_dir, '*short_catalog.txt'))
-ch1long = [i for i in filepaths_long if '_1_' in i]
-ch2long = [i for i in filepaths_long if '_2_' in i]
-ch1short = [i for i in filepaths_short if '_1_' in i]
-ch2short = [i for i in filepaths_short if '_2_' in i]
-pool.map(combine_hdr_catalogs, zip(ch1long, ch1short))
-pool.map(combine_hdr_catalogs, zip(ch2long, ch2short))
-
+if is_hdr:
+	filepaths_long = list(find_files(out_dir, '*long_catalog.txt'))
+	filepaths_short = list(find_files(out_dir, '*short_catalog.txt'))
+	ch1long = [i for i in filepaths_long if '_1_' in i]
+	ch2long = [i for i in filepaths_long if '_2_' in i]
+	ch1short = [i for i in filepaths_short if '_1_' in i]
+	ch2short = [i for i in filepaths_short if '_2_' in i]
+	pool.map(combine_hdr_catalogs, zip(ch1long, ch1short))
+	pool.map(combine_hdr_catalogs, zip(ch2long, ch2short))
+else:
+	# insert non-hdr sigma clip code here
+	pass
 
 
 # # now run write_mean_groups to produce ch1/ch2,long/short catalogs

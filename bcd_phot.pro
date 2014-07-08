@@ -1,4 +1,4 @@
-PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel,USE_MASK=use_mask
+PRO bcd_phot,cbcdfile,cbuncfile,maskfile,radeclist,channel,USE_MASK=use_mask,CENTROID=centroid
 
 ; DESCRIPTION
 ;	Computes aperture photometry of the sources in radeclist
@@ -83,8 +83,13 @@ for i=0,n_elements(x)-1 do begin
 	;check to make sure the pixel coordinates are finite, skip source if not
 	if not finite(x[i]) or not finite(y[i]) then continue
 
-	;centroid on x,y
-	box_centroider,img,unc^2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
+	if keyword_set(centroid) then begin
+		;centroid on x,y
+		box_centroider,img,unc^2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
+	endif else begin
+		x0 = x[i]
+		y0 = y[i]
+	endelse
 
 	;check for any flagged pixels inside the aperture, skip if so
 	if keyword_set(use_mask) then begin

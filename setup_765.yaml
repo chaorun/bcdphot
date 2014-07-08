@@ -4,14 +4,15 @@ params: {data_dir: /home/jlivings/spitzer_cirb_data,
   hdr: true,
   idl_path: /usr/admin/local/itt/idl70/bin/idl,
   max_cov: 12,
-  mask: true,
+  mask: false,
   min_snr: 0.5,
   max_dist: 3,
   long_cutoff_ch1: 10,
   long_cutoff_ch2: 12,
   short_cutoff_ch1: 250,
   short_cutoff_ch2: 350,
-  sigma_clip: 3}
+  sigma_clip: 3,
+  centroid: true}
 regions:
 - aors: ['43424000', '43424512', '43432448']
   name: '765'

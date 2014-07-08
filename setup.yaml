@@ -11,7 +11,8 @@ params: {data_dir: /home/jlivings/spitzer_cirb_data,
   long_cutoff_ch2: 12,
   short_cutoff_ch1: 250,
   short_cutoff_ch2: 350,
-  sigma_clip: 3}
+  sigma_clip: 3,
+  centroid: true}
 regions:
 - aors: ['43420416', '43432192', '43418880']
   name: '3813'
