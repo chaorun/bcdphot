@@ -1,5 +1,5 @@
 params: {data_dir: /home/jlivings/spitzer_cirb_data,
-  out_dir: /home/jlivings/spitzer_cirb_data/bcdphot_out3,
+  out_dir: /home/jlivings/spitzer_cirb_data/bcdphot_out_yesmask_nocentroid,
   cbcd: true,
   hdr: true,
   idl_path: /usr/admin/local/itt/idl70/bin/idl,
@@ -12,7 +12,7 @@ params: {data_dir: /home/jlivings/spitzer_cirb_data,
   short_cutoff_ch1: 250,
   short_cutoff_ch2: 350,
   sigma_clip: 3,
-  centroid: true}
+  centroid: false}
 regions:
 - aors: ['43420416', '43432192', '43418880']
   name: '3813'
