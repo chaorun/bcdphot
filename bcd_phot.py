@@ -359,14 +359,30 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 	slope = ordinary_least_squares(y, X)
 
 	# divide short flux/unc by the slope so that it agrees with the long flux
-	print('region {} correction value: {}'.format(meta['name'],slope))
+	print('region {} correction value: {}'.format(meta['name'], slope))
 	short_cat.flux /= slope
 	short_cat.unc /= slope
 
 	# get everything brighter than the cutoff in short and combine with long
 	idx_faint = long_cat.flux < meta['long_cutoff']
 	idx_bright = short_cat.flux > meta['long_cutoff']
-	data = np.concatenate([long_cat[idx_faint],short_cat[idx_bright]])
+
+	# before concatenation of long and short subsets, check for any duplicates
+	# (if they exist they should tend to have flux very close to the cutoff)
+	ls, ss = long_cat[idx_faint], short_cat[idx_bright]
+	idx_s, idx_l, ds = spherematch(ss.ra, ss.dec, ls.ra, ls.dec, 
+		tolerance=1/3600.)
+	dup_ids = []
+	for idx in idx_l:
+		if (ls.flux[idx] > 0.9 * meta['long_cutoff']) & \
+			(ls.flux[idx] < meta['long_cutoff']):
+			dup_ids.append(ls.id[idx])
+	
+	# now use the ids of the duplicates to delete them from the long dataset
+	good = ls.id != dup_ids
+	ls = ls[good]
+
+	data = np.concatenate([ls, ss])
 
 	# apply global sigma clip using the value from setup.yaml
 	snr = data['flux'] / data['unc']
