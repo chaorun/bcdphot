@@ -379,8 +379,8 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 			dup_ids.append(ls.id[idx])
 	
 	# now use the ids of the duplicates to delete them from the long dataset
-	good = ls.id != dup_ids
-	ls = ls[good]
+	for idx in dup_ids:
+		ls = ls[ls.id != idx]
 
 	data = np.concatenate([ls, ss])
 
