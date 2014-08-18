@@ -238,6 +238,84 @@ def apply_array_location_correction(phot_groups_filepath):
 	print('created file: '+out_path)
 
 
+def uncorrect_red_sources(phot_groups_filepath_tuple):
+
+	"""	
+	identify the 'red' sources by comparing ch1 to ch2 energies, then find their
+	entries in the single-exposure catalogs and un-correct (divide) the
+	array location dependent correction. red = ch1_flux < 3.6/4.5 * ch2_flux
+	"""	
+
+	ch1_file, ch2_file = phot_groups_filepath_tuple
+
+	arrloc1 = pyfits.open('ch1_photcorr_ap_5.fits')[0].data
+	arrloc2 = pyfits.open('ch2_photcorr_ap_5.fits')[0].data
+
+	# work_dir = '/'.join(ch1_file.split('/')[:-1])
+	# meta = json.load(open(work_dir+'/metadata.json'))
+
+	# read in the photometry JSON files
+	ch1 = json.load(open(ch1_file))
+	ch2 = json.load(open(ch2_file))
+
+	# ra1, dec1, ra2, dec2 = [], [], [], []
+	# ch1_list = [ch1[key] for key in ch1.keys()]
+	# ch2_list = [ch2[key] for key in ch2.keys()]
+	# for group in ch1.values():
+	# 	group_arr = np.array(group)
+	# 	ra1.append()
+
+	ra1, dec1 = zip(*[i[0][:2] for i in ch1.values()])
+	ra2, dec2 = zip(*[i[0][:2] for i in ch2.values()])
+	# ra1, dec1 = [np.array(i) for i in zip(*[i[0][:2] for i in ch1.values()])]
+	# ra2, dec2 = [np.array(i) for i in zip(*[i[0][:2] for i in ch2.values()])]
+
+	if len(ra1) < len(ra2):
+		idx1, idx2, ds = spherematch(ra1, dec1, ra2, dec2, tolerance=2/3600.)
+	else:
+		idx2, idx1, ds = spherematch(ra2, dec2, ra1, dec1, tolerance=2/3600.)
+
+	# ch1_arr = np.array(ch1.values())
+	# ch2_arr = np.array(ch2.values())
+	# for i in range(ds.size):
+	# 	group1 = np.array(ch1_arr[idx1][i])
+	# 	group2 = np.array(ch2_arr[idx2][i])
+	# 	mean_flux1 = group1[:,6].mean()
+	# 	mean_flux2 = group2[:,6].mean()
+	# 	if mean_flux1 < (3.6/4.5) * mean_flux2:
+	# 		key1 = ch1.keys()[idx1[i]]
+	# 		key2 = ch2.keys()[idx2[i]]
+	# 		for obs in ch1[key1]:
+	# 			x, y = obs[4:6]
+	# 			obs[6:] = [i / arrloc1[x,y] for i in obs[6:]]
+	# 		for obs in ch2[key2]:
+	# 			x, y = obs[4:6]
+	# 			obs[6:] = [i / arrloc2[x,y] for i in obs[6:]]
+
+	# num_red = 0
+	for k1, k2 in zip(np.array(ch1.keys())[idx1], np.array(ch2.keys())[idx2]):
+		f1 = np.array(ch1[k1]).mean(0)[6]
+		f2 = np.array(ch2[k2]).mean(0)[6]
+		red = f1 < (3.6/4.5) * f2
+		if red:
+			# num_red += 1
+			for obs in ch1[k1]:
+				x, y = obs[4:6]
+				obs[6:] = [i / arrloc1[x,y] for i in obs[6:]]
+			for obs in ch2[k2]:
+				x, y = obs[4:6]
+				obs[6:] = [i / arrloc2[x,y] for i in obs[6:]]
+
+	out_path = ch1_file.replace('_arrayloc.json', '_arrayloc_cor.json')
+	with open(out_path,'w') as w:
+		json.dump(ch1, w, indent=4*' ')
+	print('created file: '+out_path)
+	out_path = ch2_file.replace('_arrayloc.json', '_arrayloc_cor.json')
+	with open(out_path,'w') as w:
+		json.dump(ch2, w, indent=4*' ')
+	print('created file: '+out_path)
+
+
 def calculate_full_uncertainties(phot_groups_filepath):
 
 	"""
@@ -281,15 +359,21 @@ def calculate_full_uncertainties(phot_groups_filepath):
 		systematic uncertainty: {}
 		calculated from {} datapoints
 		average number of measurements: {}"""
-		print(msg.format(meta['name'], meta['channel'], meta['hdr'],
-			sigma_sys, brightest.sum(), n_obs[brightest].mean()))
+		msg = msg.format(meta['name'], meta['channel'], meta['hdr'],
+			sigma_sys, brightest.sum(), n_obs[brightest].mean())
+		print(msg)
+		with open(work_dir+'/systematic_uncertainty.txt','w') as w:
+			w.write(msg)
 	else:
 		msg = """region: {}, channel: {}
 		systematic uncertainty: {}
 		calculated from {} datapoints
 		average number of measurements: {}"""
-		print(msg.format(meta['name'], meta['channel'], 
-			sigma_sys, brightest.sum(), n_obs[brightest].mean()))
+		msg = msg.format(meta['name'], meta['channel'], 
+			sigma_sys, brightest.sum(), n_obs[brightest].mean())
+		print(msg)
+		with open(work_dir+'/systematic_uncertainty.txt','w') as w:
+			w.write(msg)
 
 	# calculate the photometric uncertainties
 	sigma_phot = []

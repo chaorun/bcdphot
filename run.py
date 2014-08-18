@@ -14,7 +14,7 @@ from bcd_phot import apply_array_location_correction
 from bcd_phot import calculate_full_uncertainties
 from bcd_phot import cull_bad_measurements
 from bcd_phot import combine_hdr_catalogs
-
+from bcd_phot import uncorrect_red_sources
 
 # instantiate the pool for parallel processing
 ncpus = multiprocessing.cpu_count()
@@ -217,14 +217,28 @@ print('applying array location correction...')
 filepaths = list(find_files(out_dir, 'phot_groups.json'))
 pool.map(apply_array_location_correction, filepaths)
 
-# optional: un-correct photometry of red sources, by matching ch1/ch2
-# filepaths = list(find_files(out_dir, 'phot_groups_arrayloc.json'))
-# pool.map(uncorrect_red_sources, filepaths)
+# un-correct photometry of red sources, by matching ch1/ch2
+if is_hdr:
+	filepaths_long = filter(lambda x: 'long' in x, 
+		find_files(out_dir, 'phot_groups_arrayloc.json'))
+	filepaths_short = filter(lambda x: 'short' in x, 
+		find_files(out_dir, 'phot_groups_arrayloc.json'))
+	ch1long = filter(lambda x: '/1/' in x, filepaths_long)
+	ch2long = filter(lambda x: '/2/' in x, filepaths_long)
+	ch1short = filter(lambda x: '/1/' in x, filepaths_short)
+	ch2short = filter(lambda x: '/2/' in x, filepaths_short)
+	pool.map(uncorrect_red_sources, zip(ch1long, ch2long))
+	pool.map(uncorrect_red_sources, zip(ch1short, ch2short))
+else:
+	filepaths = list(find_files(out_dir, 'phot_groups_arrayloc.json'))
+	ch1 = filter(lambda x: '/1/' in x, filepaths)
+	ch2 = filter(lambda x: '/2/' in x, filepaths)
+	pool.map(uncorrect_red_sources, zip(ch1, ch2))
 
 # calculate the full uncertainties from both systematic
 # and photometric processes
 print('calculating full uncertainties...')
-filepaths = list(find_files(out_dir, 'phot_groups_arrayloc.json'))
+filepaths = list(find_files(out_dir, 'phot_groups_arrayloc_cor.json'))
 pool.map(calculate_full_uncertainties, filepaths)
 
 # create catalogs - since this step operates on fully corrected data
@@ -242,21 +256,3 @@ if is_hdr:
 else:
 	# insert non-hdr sigma clip code here
 	pass
-
-
-# # now run write_mean_groups to produce ch1/ch2,long/short catalogs
-# # phot_group_paths = glob.glob('bcd_dirs/*/*/phot_groups.json')
-# print('combining multiple measurements of sources...')
-# filepaths = list(find_files(out_dir, 'phot_groups.json'))
-# pool.map(write_mean_groups, filepaths)
-
-# # now run save_single_channel to get individual channel/exposure catalogs
-# print('writing single channel catalogs...')
-# filepaths = list(find_files(out_dir, 'phot_groups_mean.json'))
-# pool.map(save_single_channel, filepaths)
-
-# # now apply the array location dependent correction
-# print('applying array location correction...')
-# filepaths = list(find_files(out_dir, 'phot_groups_mean.json'))
-# args_list = array_location_setup(filepaths)
-# pool.map(apply_array_location_correction, args_list)
