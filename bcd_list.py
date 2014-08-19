@@ -23,7 +23,7 @@ def source_in_image(argslist):
 	ra, dec, fitsfile = argslist
 	hdr = pyfits.getheader(fitsfile)
 	wcs = pywcs.WCS(hdr)
-	x, y = map(lambda x: x[0], wcs.wcs_sky2pix(ra, dec, 1))
+	x, y = map(lambda x: x[0], wcs.wcs_sky2pix(ra, dec, 0))
 	x_max = hdr['NAXIS1']
 	y_max = hdr['NAXIS2']
 	if x >= 0 and x < x_max and y >= 0 and y < y_max:
