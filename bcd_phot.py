@@ -323,23 +323,21 @@ def calculate_full_uncertainties(phot_groups_filepath):
 
 	# print the systematic uncertainty to stdout
 	if 'hdr' in meta.keys():
-		msg = """region: {}, channel: {}, exposure: {}
-		systematic uncertainty: {}
-		calculated from {} datapoints
-		average number of measurements: {}"""
+		msg = "region: {}, channel: {}, exposure: {}\n"+
+		"systematic uncertainty: {}\n"
+		"calculated from {} datapoints\n"
+		"average number of measurements: {}"
 		msg = msg.format(meta['name'], meta['channel'], meta['hdr'],
 			sigma_sys, brightest.sum(), n_obs[brightest].mean())
-		print(msg)
 		with open(work_dir+'/systematic_uncertainty.txt','w') as w:
 			w.write(msg)
 	else:
-		msg = """region: {}, channel: {}
-		systematic uncertainty: {}
-		calculated from {} datapoints
-		average number of measurements: {}"""
+		msg = "region: {}, channel: {}\n"+
+		"systematic uncertainty: {}\n"
+		"calculated from {} datapoints\n"
+		"average number of measurements: {}"
 		msg = msg.format(meta['name'], meta['channel'], 
 			sigma_sys, brightest.sum(), n_obs[brightest].mean())
-		print(msg)
 		with open(work_dir+'/systematic_uncertainty.txt','w') as w:
 			w.write(msg)
 
@@ -435,6 +433,10 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 		ls = ls[ls.id != idx]
 
 	data = np.concatenate([ls, ss])
+
+	# eliminate sources with negative flux
+	good = data['flux'] >= 0
+	data = data[good]
 
 	# apply global sigma clip using the value from setup.yaml
 	snr = data['flux'] / data['unc']
