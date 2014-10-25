@@ -1,5 +1,5 @@
 params: {data_dir: /home/jlivings/spitzer_cirb_data,
-  out_dir: /home/jlivings/spitzer_cirb_data/bcdphot_out_yesmask_nocentroid,
+  out_dir: /home/jlivings/spitzer_cirb_data/bcdphot_out_final,
   cbcd: true,
   hdr: true,
   idl_path: /usr/admin/local/itt/idl70/bin/idl,
