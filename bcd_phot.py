@@ -323,18 +323,18 @@ def calculate_full_uncertainties(phot_groups_filepath):
 
 	# print the systematic uncertainty to stdout
 	if 'hdr' in meta.keys():
-		msg = "region: {}, channel: {}, exposure: {}\n"+
-		"systematic uncertainty: {}\n"
-		"calculated from {} datapoints\n"
+		msg = "region: {}, channel: {}, exposure: {}\n"+\
+		"systematic uncertainty: {}\n"+\
+		"calculated from {} datapoints\n"+\
 		"average number of measurements: {}"
 		msg = msg.format(meta['name'], meta['channel'], meta['hdr'],
 			sigma_sys, brightest.sum(), n_obs[brightest].mean())
 		with open(work_dir+'/systematic_uncertainty.txt','w') as w:
 			w.write(msg)
 	else:
-		msg = "region: {}, channel: {}\n"+
-		"systematic uncertainty: {}\n"
-		"calculated from {} datapoints\n"
+		msg = "region: {}, channel: {}\n"+\
+		"systematic uncertainty: {}\n"+\
+		"calculated from {} datapoints\n"+\
 		"average number of measurements: {}"
 		msg = msg.format(meta['name'], meta['channel'], 
 			sigma_sys, brightest.sum(), n_obs[brightest].mean())
