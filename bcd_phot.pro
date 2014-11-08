@@ -113,7 +113,7 @@ for i=0,n_elements(x)-1 do begin
 
 	;convert flux and unc from MJy/sr to Jy and apply aperture correction
 	flux_jy = (flux_aper * ap_cor * conv_fac) * 1e-6
-	unc = (fluxerr * ap_cor * conv_fac) * 1e-6
+	unc = (fluxerr * conv_fac) * 1e-6		; unc does not get aperture correction
 
 	;apply pixel phase correction
 	corrected_flux = pixel_phase_correct_gauss(flux_jy,x0,y0,channel,ap_par)
