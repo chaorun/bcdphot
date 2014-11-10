@@ -169,7 +169,7 @@ def match_cats(df1, df2, tol=2/3600.):
 
 
 def plot(x, y, outpath, xlabel, ylabel, plot_style, plot_type):
-	if plot_type == 'mag-mag'
+	if plot_type == 'mag-mag':
 		xlim = (10, 19)
 		ylim = (10, 19)
 	elif plot_type == 'color-mag':
