@@ -18,8 +18,7 @@ vg_dir = '/Users/jlivings/data/spitzer_cirb_data/subarray/finalphot10'
 cleanup_sub(vg_dir)
 
 vg_dir += '_clean'
-bcdphot_dir = '/Users/jlivings/data/spitzer_cirb_data/ace7/bcdphot_out_yesmask_nocentroid'
-merge_subarray(vg_dir, bcdphot_dir)
+merge_subarray(vg_dir, bcdphot_out_path)
 
 cat_path = '/Users/jlivings/data/spitzer_cirb_data/subarray/finalphot10_plots_catalogs'
 match_sdss(cat_path)
