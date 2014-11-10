@@ -5,7 +5,6 @@ import pandas as pd
 import urllib, urllib2
 from prettyplotlib import plt
 from astropy.io.votable import parse_single_table
-sys.path.append('/Users/jlivings/data/spitzer_cirb_data/ace7/bcdphot')
 from util import find_files
 from util import spherematch
 from util import great_circle_distance
