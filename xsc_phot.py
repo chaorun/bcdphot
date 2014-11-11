@@ -108,14 +108,11 @@ def run_xsc_phot(bcdphot_out_path, mosaic_path):
 		da = np.recfromtxt(outpath, skip_header=80, names=names)
 
 		# write input file for xsc_phot.pro
-		outpath = '/'.join(cat.split('/')[:-1])+'/xsc.txt'
-		with open(outpath,'w') as f:
+		infile_outpath = '/'.join(cat.split('/')[:-1])+'/xsc.txt'
+		with open(infile_outpath,'w') as w:
 			for i in range(da.shape[0]):
-				f.write("{} {} {} {}\n".format(
-					da.designation[i],da.ra[i],da.dec[i],da.r_ext[i]
-					)
-				)
-		print("\ncreated input file for xsc_phot.pro: {}".format(outpath))
+				w.write("{} {} {} {}\n".format(da.designation[i], da.ra[i], da.dec[i], da.r_ext[i]))
+		print("\ncreated input file for xsc_phot.pro: {}".format(infile_outpath))
 
 		# locate the FITS mosaic file for xsc_phot.pro to do photometry on
 		reg, ch = cat.split('/')[-1].split('_')[:2]
@@ -124,11 +121,11 @@ def run_xsc_phot(bcdphot_out_path, mosaic_path):
 		print("\nfound mosaic file: {}".format(mosaicfile))
 
 		# spawn IDL subprocess running xsc_phot.pro and catch stdout in file
-		outpath = outpath.replace('xsc.txt', 'xsc_phot_out.txt')
+		outpath = infile_outpath.replace('xsc.txt', 'xsc_phot_out.txt')
 		if not os.path.isfile(outpath):
 			outfile = open(outpath,'w')
 			print("\nspawning xsc_phot.pro IDL subprocess")
-			cmd = "xsc_phot,'"+mosaicfile+"','"+outpath+"','long'"
+			cmd = "xsc_phot,'"+mosaicfile+"','"+infile_outpath+"','long'"
 			rc = subprocess.call(['/usr/local/itt/idl71/bin/idl','-quiet','-e',cmd], 
 				stderr = subprocess.PIPE, stdout = outfile)
 			outfile.close()
@@ -215,30 +212,29 @@ def run_xsc_phot(bcdphot_out_path, mosaic_path):
 		plt.close()
 		print('\ncreated file: {}'.format(outpath))
 
-
-	outfile = 'xsc_replaced.json'
-	json.dump(replaced, open(outfile,'w'))
-	print("\ncreated file: {}".format(outfile))
-	print("\nremoved / added")
-	for k,v in replaced.iteritems():
-		print k.split('/')[-1], v['old'], v['new']
-	m = np.mean([i['old']/float(i['new']) for i in replaced.values()])
-	print("average ratio: {}".format(m))
-	print("\nK mag and r_ext of sources with NaN photometry:")
-	for i in find_files(bcdphot_out_path, "*xsc_nan_phot.csv"):
-		reg = i.split('/')[-1]
-		rec = np.recfromcsv(i)
-		bad_id = rec.designation.tolist()
-		bad_k = rec.k_m_k20fe.tolist()
-		bad_r_ext = rec.r_ext.tolist()
-		print reg
-		print ("\tid\t\t\tKmag\tr_ext")
-		if type(bad_id) is list:
-			seq = sorted(zip(bad_id, bad_k, bad_r_ext), key=lambda x: x[0])
-			for j,k,l in seq:
-				print("\t{}\t{}\t{}".format(j,k,l))
-		else:
-			print("\t{}\t{}\t{}".format(bad_id, bad_k, bad_r_ext))
+		outfile = 'xsc_replaced.json'
+		json.dump(replaced, open(outfile,'w'))
+		print("\ncreated file: {}".format(outfile))
+		print("\nremoved / added")
+		for k,v in replaced.iteritems():
+			print k.split('/')[-1], v['old'], v['new']
+		m = np.mean([i['old']/float(i['new']) for i in replaced.values()])
+		print("average ratio: {}".format(m))
+		print("\nK mag and r_ext of sources with NaN photometry:")
+		for i in find_files(bcdphot_out_path, "*xsc_nan_phot.csv"):
+			reg = i.split('/')[-1]
+			rec = np.recfromcsv(i)
+			bad_id = rec.designation.tolist()
+			bad_k = rec.k_m_k20fe.tolist()
+			bad_r_ext = rec.r_ext.tolist()
+			print reg
+			print ("\tid\t\t\tKmag\tr_ext")
+			if type(bad_id) is list:
+				seq = sorted(zip(bad_id, bad_k, bad_r_ext), key=lambda x: x[0])
+				for j,k,l in seq:
+					print("\t{}\t{}\t{}".format(j,k,l))
+			else:
+				print("\t{}\t{}\t{}".format(bad_id, bad_k, bad_r_ext))
 
 
 if __name__ == '__main__':
