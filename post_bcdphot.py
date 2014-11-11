@@ -24,6 +24,7 @@ cat_path = '/Users/jlivings/data/spitzer_cirb_data/subarray/finalphot10_plots_ca
 match_sdss(cat_path)
 plot_sdss(cat_path)
 
+match_wise(cat_path, sdss=False)
 match_wise(cat_path, sdss=True)
 plot_wise(cat_path)
 plot_spz_vs_wise(cat_path, plot_style='scatter')

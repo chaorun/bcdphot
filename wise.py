@@ -132,7 +132,11 @@ def plot_wise(cat_path):
 		df = pd.read_csv(catfile)
 
 		# convert to magnitudes
-		assert (df.flux <= 0) == 0
+		nbadflux = (df.flux <= 0).sum()
+		try:
+			assert nbadflux == 0
+		except:
+			print("warning: {} negative flux source(s)".format(nbadflux))
 		ch = catfile.split('/')[-1].split('_')[1]
 		mags = spz_jy_to_mags(df.flux*1e-3, float(ch))
 		if ch == '1':
@@ -261,7 +265,7 @@ def plot_spz_vs_wise(cat_path, plot_style='scatter'):
 		name = '{}_I1_vs_I1-I2_plot_style.png'.format(reg1)
 		name = name.replace('plot_style', plot_style)
 		outpath = '/'.join(ch1.split('/')[:-1]+[name])
-		plot(color, mags, outpath, 'I1 [mag]', 'I1-I2 [mag]', 
+		plot(mags, color, outpath, 'I1 [mag]', 'I1-I2 [mag]', 
 			plot_style=plot_style, plot_type='color-mag')
 
 		# plot wise color-magnitude diagrams
@@ -270,7 +274,7 @@ def plot_spz_vs_wise(cat_path, plot_style='scatter'):
 		name = '{}_W1_vs_W1-W2_plot_style.png'.format(reg1)
 		name = name.replace('plot_style', plot_style)
 		outpath = '/'.join(ch1.split('/')[:-1]+[name])
-		plot(color, mags, outpath, 'W1 [mag]', 'W1-W2 [mag]', 
+		plot(mags, color, outpath, 'W1 [mag]', 'W1-W2 [mag]', 
 			plot_style=plot_style, plot_type='color-mag')
 	
 		# plot I1 vs I2
@@ -359,11 +363,11 @@ def plot_spz_vs_wise_sdss_class(cat_path, plot_style='scatter'):
 		name = '{}_I1_vs_I1-I2_galaxies_plot_style.png'.format(reg1)
 		name = name.replace('plot_style', plot_style)
 		outpath = '/'.join(ch1.split('/')[:-1]+[name])
-		plot(color[galaxies], mags[galaxies], outpath, 'I1 [mag]', 'I1-I2 [mag]', 
+		plot(mags[galaxies], color[galaxies], outpath, 'I1 [mag]', 'I1-I2 [mag]', 
 			plot_style=plot_style, plot_type='color-mag')
 		# stars
 		outpath = '/'.join(ch1.split('/')[:-1]+[name]).replace('galaxies', 'stars')
-		plot(color[stars], mags[stars], outpath, 'I1 [mag]', 'I1-I2 [mag]', 
+		plot(mags[stars], color[stars], outpath, 'I1 [mag]', 'I1-I2 [mag]', 
 			plot_style=plot_style, plot_type='color-mag')
 
 		# plot wise color-magnitude diagrams
@@ -373,11 +377,11 @@ def plot_spz_vs_wise_sdss_class(cat_path, plot_style='scatter'):
 		name = '{}_W1_vs_W1-W2_galaxies_plot_style.png'.format(reg1)
 		name = name.replace('plot_style', plot_style)
 		outpath = '/'.join(ch1.split('/')[:-1]+[name])
-		plot(color[galaxies], mags[galaxies], outpath, 'W1 [mag]', 'W1-W2 [mag]', 
+		plot(mags[galaxies], color[galaxies], outpath, 'W1 [mag]', 'W1-W2 [mag]', 
 			plot_style=plot_style, plot_type='color-mag')
 		# stars
 		outpath = '/'.join(ch1.split('/')[:-1]+[name]).replace('galaxies', 'stars')
-		plot(color[stars], mags[stars], outpath, 'W1 [mag]', 'W1-W2 [mag]', 
+		plot(mags[stars], color[stars], outpath, 'W1 [mag]', 'W1-W2 [mag]', 
 			plot_style=plot_style, plot_type='color-mag')
 	
 		# plot I1 vs I2
