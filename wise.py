@@ -174,25 +174,26 @@ def match_cats(df1, df2, tol=2/3600.):
 
 def plot(x, y, outpath, xlabel, ylabel, plot_style, plot_type):
 	if plot_type == 'mag-mag':
-		xlim = (10, 19)
-		ylim = (10, 19)
+		xlim = (10, 18)
+		ylim = (10, 18)
 	elif plot_type == 'color-mag':
-		xlim = (10, 19)
+		xlim = (10, 18)
 		ylim = (-1, 1)
 	elif plot_type == 'color-color':
 		xlim = (-1, 1)
 		ylim = (-1, 1)
 	else:
 		raise(ValueError("plot_type should be one of ['mag-mag', 'color-mag', 'color-color'] "))
+	isinrange = lambda a,b: (a>=b[0]) & (a<=b[1])
+	g = isinrange(x, xlim) & isinrange(y, ylim)
 	if plot_style == 'scatter':
-		plt.scatter(x, y)
+		plt.scatter(x[g], y[g])
 	elif plot_style == 'hexbin':
-		plt.hexbin(x, y)
-	elif plot_style == 'imshow':
-		g = ~np.isnan(x) & ~np.isnan(y)
+		plt.hexbin(x[g], y[g])
+	elif plot_style == 'hist2d':
 		plt.hist2d(x[g], y[g], bins=100)
 	else:
-		raise(ValueError("plot_style should be one of ['scatter', 'hexbin', 'imshow'] "))
+		raise(ValueError("plot_style should be one of ['scatter', 'hexbin', 'hist2d'] "))
 	plt.xlabel(xlabel)
 	plt.ylabel(ylabel)
 	ax = plt.gca()
@@ -405,7 +406,7 @@ if __name__ == '__main__':
 	plot_wise(cat_path)
 	plot_spz_vs_wise(cat_path, plot_style='scatter')
 	plot_spz_vs_wise(cat_path, plot_style='hexbin')
-	plot_spz_vs_wise(cat_path, plot_style='imshow')
+	plot_spz_vs_wise(cat_path, plot_style='hist2d')
 	plot_spz_vs_wise_sdss_class(cat_path, plot_style='scatter')
 	plot_spz_vs_wise_sdss_class(cat_path, plot_style='hexbin')
-	plot_spz_vs_wise_sdss_class(cat_path, plot_style='imshow')
+	plot_spz_vs_wise_sdss_class(cat_path, plot_style='hist2d')
