@@ -39,7 +39,7 @@ def get_url(ra, dec, radius):
 	return query_url
 
 
-def match_wise(cat_path, search_pattern, sdss=True):
+def match_wise(cat_path, sdss=True):
 	if sdss:
 		search_pattern = "*merged+sdss.txt"
 	else:
@@ -53,7 +53,7 @@ def match_wise(cat_path, search_pattern, sdss=True):
 
 		# retrieve WISE data from ViZieR if not already downloaded
 		ch = catfile.split('/')[-1].split('_')[1]
-		if use_sdss:
+		if sdss:
 			outpath = catfile.replace('{}_merged+sdss.txt'.format(ch), 'wise.vot')
 		else:
 			outpath = catfile.replace('{}_merged.txt'.format(ch), 'wise.vot')
@@ -200,7 +200,7 @@ def plot(x, y, outpath, xlabel, ylabel, plot_style, plot_type):
 
 
 
-def plot_spz_vs_wise(cat_path, scatter=True, hexbin=False):
+def plot_spz_vs_wise(cat_path, plot_style='scatter'):
 
 	ch1 = list(find_files(cat_path, "*merged+wise.csv"))[::2]
 	ch2 = list(find_files(cat_path, "*merged+wise.csv"))[1::2]

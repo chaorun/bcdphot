@@ -212,29 +212,29 @@ def run_xsc_phot(bcdphot_out_path, mosaic_path):
 		plt.close()
 		print('\ncreated file: {}'.format(outpath))
 
-		outfile = 'xsc_replaced.json'
-		json.dump(replaced, open(outfile,'w'))
-		print("\ncreated file: {}".format(outfile))
-		print("\nremoved / added")
-		for k,v in replaced.iteritems():
-			print k.split('/')[-1], v['old'], v['new']
-		m = np.mean([i['old']/float(i['new']) for i in replaced.values()])
-		print("average ratio: {}".format(m))
-		print("\nK mag and r_ext of sources with NaN photometry:")
-		for i in find_files(bcdphot_out_path, "*xsc_nan_phot.csv"):
-			reg = i.split('/')[-1]
-			rec = np.recfromcsv(i)
-			bad_id = rec.designation.tolist()
-			bad_k = rec.k_m_k20fe.tolist()
-			bad_r_ext = rec.r_ext.tolist()
-			print reg
-			print ("\tid\t\t\tKmag\tr_ext")
-			if type(bad_id) is list:
-				seq = sorted(zip(bad_id, bad_k, bad_r_ext), key=lambda x: x[0])
-				for j,k,l in seq:
-					print("\t{}\t{}\t{}".format(j,k,l))
-			else:
-				print("\t{}\t{}\t{}".format(bad_id, bad_k, bad_r_ext))
+	outfile = 'xsc_replaced.json'
+	json.dump(replaced, open(outfile,'w'))
+	print("\ncreated file: {}".format(outfile))
+	print("\nremoved / added")
+	for k,v in replaced.iteritems():
+		print k.split('/')[-1], v['old'], v['new']
+	m = np.mean([i['old']/float(i['new']) for i in replaced.values()])
+	print("average ratio: {}".format(m))
+	print("\nK mag and r_ext of sources with NaN photometry:")
+	for i in find_files(bcdphot_out_path, "*xsc_nan_phot.csv"):
+		reg = i.split('/')[-1]
+		rec = np.recfromcsv(i)
+		bad_id = rec.designation.tolist()
+		bad_k = rec.k_m_k20fe.tolist()
+		bad_r_ext = rec.r_ext.tolist()
+		print reg
+		print ("\tid\t\t\tKmag\tr_ext")
+		if type(bad_id) is list:
+			seq = sorted(zip(bad_id, bad_k, bad_r_ext), key=lambda x: x[0])
+			for j,k,l in seq:
+				print("\t{}\t{}\t{}".format(j,k,l))
+		else:
+			print("\t{}\t{}\t{}".format(bad_id, bad_k, bad_r_ext))
 
 
 if __name__ == '__main__':
