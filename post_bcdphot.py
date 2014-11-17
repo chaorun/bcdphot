@@ -10,7 +10,7 @@ from wise import plot_spz_vs_wise
 from wise import plot_spz_vs_wise_sdss_class
 
 
-bcdphot_out_path = '/Users/jlivings/data/spitzer_cirb_data/ace7/bcdphot_out_final-old'
+bcdphot_out_path = '/Users/jlivings/data/spitzer_cirb_data/ace7/bcdphot_out_final'
 mosaic_path = '/Users/jlivings/data/spitzer_cirb_data/mopex'
 run_xsc_phot(bcdphot_out_path, mosaic_path)
 

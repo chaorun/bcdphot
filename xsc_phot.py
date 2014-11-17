@@ -137,9 +137,9 @@ def run_xsc_phot(bcdphot_out_path, mosaic_path):
 		# make sure rows are aligned
 		assert (da.designation == phot.id).all()
 
-		# ignore xsc sources we got a NaN flux for
-		bad = np.isnan(phot.flux)
-		print("\naper.pro returned NaN flux for {} sources".format(bad.sum()))
+		# ignore xsc sources we got a NaN or negative flux for
+		bad = np.isnan(phot.flux) | (phot.flux < 0)
+		print("\naper.pro returned NaN or negative flux for {} sources".format(bad.sum()))
 		if bad.sum() > 0:
 			for i in phot[bad].id:
 				print(i)
