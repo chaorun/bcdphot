@@ -238,6 +238,8 @@ def plot_spz_vs_wise(cat_path, plot_style='scatter'):
 		# matched = pd.concat([matched1, matched2], 1, ignore_index=True)	# weird error
 		matched = np.concatenate([matched1.values, matched2.values], 1)
 		df_matched = pd.DataFrame(matched, columns=ch1_cols+ch2_cols)
+		df_matched['I1'] = mags1[idx1].values
+		df_matched['I2'] = mags2[idx2].values
 		outpath = '/'.join(ch1.split('/')[:-1])+'/{}_2ch_matched.csv'.format(reg1)
 		df_matched.to_csv(outpath, index=False, float_format='%.8f')
 		print("created file: {}".format(outpath))
@@ -321,6 +323,8 @@ def plot_spz_vs_wise_sdss_class(cat_path, plot_style='scatter'):
 		# matched = pd.concat([matched1, matched2], 1, ignore_index=True)	# weird error
 		matched = np.concatenate([matched1.values, matched2.values], 1)
 		df_matched = pd.DataFrame(matched, columns=ch1_cols+ch2_cols)
+		df_matched['I1'] = mags1[idx1].values
+		df_matched['I2'] = mags2[idx2].values
 		outpath = '/'.join(ch1.split('/')[:-1])+'/{}_2ch_matched+sdss.csv'.format(reg1)
 		df_matched.to_csv(outpath, index=False, float_format='%.8f')
 		print("created file: {}".format(outpath))
