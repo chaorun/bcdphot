@@ -440,7 +440,7 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 
 	# apply global sigma clip using the value from setup.yaml
 	snr = data['flux'] / data['unc']
-	good = snr > 3
+	good = snr >= meta['sigma_clip']
 	data = data[good]
 
 	# write to disk
@@ -454,4 +454,38 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 		'combined_hdr_catalog.txt'])
 	out_path = '/'.join(['/'.join(work_dir.split('/')[:-1]), out_name])
 	np.savetxt(out_path, data, fmt = fmt, header = header)
+	print('created file: '+out_path)
+
+
+def sigma_clip_non_hdr(filepath):
+
+	"""
+	Eliminates sources with SNR less than the 'sigma_clip' parameter from setup
+	file. Also checks for negative flux sources which may remain after this
+	step (can happen when uncertainty values are also negative).
+	"""
+
+	work_dir = '/'.join(filepath.split('/')[:-1])
+	meta = json.load(open(work_dir+'/metadata.json'))
+
+	names = open(filepath).readline().split()[1:]
+	data = np.recfromtxt(filepath, names=names)
+
+	# get rid of low SNR sources
+	snr = data['flux'] / data['unc']
+	good = snr >= meta['sigma_clip']
+	data = data[good]
+
+	# get rid of any remaining negative flux sources
+	good = data['flux'] > 0
+	data = data[good]
+
+	# get rid of id column
+	data = data[['ra', 'dec', 'flux', 'unc', 'n_obs']]
+
+	# write to disk
+	fmt = ['%0.8f']*2+['%.4e']*2+['%i']
+	out_path = filepath.replace('.txt', '_sigclip.txt')
+	header = ' '.join(names[1:])
+	np.savetxt(out_path, data, fmt = fmt, header = header, comments='')
 	print('created file: '+out_path)

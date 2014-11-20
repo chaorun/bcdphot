@@ -15,6 +15,7 @@ from bcd_phot import calculate_full_uncertainties
 from bcd_phot import cull_bad_measurements
 from bcd_phot import combine_hdr_catalogs
 from bcd_phot import uncorrect_red_sources
+from bcd_phot import sigma_clip_non_hdr
 
 # instantiate the pool for parallel processing
 ncpus = multiprocessing.cpu_count()
@@ -254,5 +255,5 @@ if is_hdr:
 	pool.map(combine_hdr_catalogs, zip(ch1long, ch1short))
 	pool.map(combine_hdr_catalogs, zip(ch2long, ch2short))
 else:
-	# insert non-hdr sigma clip code here
-	pass
+	filepaths = list(find_files(out_dir, '*catalog.txt'))
+	pool.map(sigma_clip_non_hdr(filepaths))
