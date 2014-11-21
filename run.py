@@ -256,4 +256,4 @@ if is_hdr:
 	pool.map(combine_hdr_catalogs, zip(ch2long, ch2short))
 else:
 	filepaths = list(find_files(out_dir, '*catalog.txt'))
-	pool.map(sigma_clip_non_hdr(filepaths))
+	pool.map(sigma_clip_non_hdr, filepaths)
