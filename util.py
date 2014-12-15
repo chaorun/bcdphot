@@ -1,5 +1,6 @@
 import os
 import yaml
+import simplejson as json
 import fnmatch
 import numpy as np
 from functools import partial
