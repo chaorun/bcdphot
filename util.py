@@ -301,11 +301,9 @@ def setup_output_dirs(setup):
 	for region in regions:
 
 		name = region['name']
-		radecfiles = region['radec']
 		aors = region['aors']
 
-		for radec in radecfiles:
-			f = radec['filepath']
+		for radec in region['radec']:
 			if is_hdr:
 				ch = str(radec['channel'])
 				hdr = radec['hdr']
@@ -350,16 +348,16 @@ def setup_output_dirs(setup):
 				'name': name,
 				'data_dir':data_dir,
 				'work_dir':work_dir,
-				'out_dir': out_dir, 
-				'radecfile': radecfile,
+				'out_dir': out_dir,
+				'radecfile': radec['filepath'],
 				'bcd_dict_path': bcd_dict_path,
 				'unc_dict_path': unc_dict_path,
 				'msk_dict_path': msk_dict_path,
-				'aors':aors, 
-				'channel':ch, 
+				'aors': aors,
+				'channel': ch,
 				'cbcd': params['cbcd'],
 				'mask': params['mask'],
-				'idl_path': params['idl_path'], 
+				'idl_path': params['idl_path'],
 				'max_cov': params['max_cov'],
 				'sigma_clip':params['sigma_clip'],
 				'centroid':params['centroid']
