@@ -508,9 +508,17 @@ def make_2ch_catalogs(cat_tuple, tol=2/3600.):
 	matched2 = df2.loc[idx2]
 	ch1_cols = [i+'_1' for i in df1.columns.tolist()]
 	ch2_cols = [i+'_2' for i in df2.columns.tolist()]
-	matched = np.concatenate([matched1.values, matched2.values], 1)
+	matched1.columns = ch1_cols	
+	matched2.columns = ch2_cols
 
-	df_matched = pd.DataFrame(matched, columns=ch1_cols+ch2_cols)
+	# matched = np.concatenate([matched1.values, matched2.values], 1)
+	# df_matched = pd.DataFrame(matched, columns=ch1_cols+ch2_cols)
+	# df_matched[['n_obs_1', 'n_obs_2']] = df_matched[['n_obs_1', 'n_obs_2']].astype(int)
+
+	matched1.index = pd.Index(np.arange(matched1.shape[0]))
+	matched2.index = pd.Index(np.arange(matched2.shape[0]))
+	df_matched = pd.concat([matched1, matched2], 1)
+
 	out_path = '/'.join(ch1.split('/')[:-1])+'/{}_2ch_matched.csv'.format(reg1)
 	df_matched.to_csv(out_path, index=False, float_format='%.8f')
 	print('created file: '+out_path)
