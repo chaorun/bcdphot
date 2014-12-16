@@ -112,4 +112,4 @@ else:
 	pool.map(sigma_clip_non_hdr, filepaths)
 	filepaths_ch1 = list(find_files(out_dir, '*_1_catalog_sigclip.txt'))
 	filepaths_ch2 = list(find_files(out_dir, '*_2_catalog_sigclip.txt'))
-	pool.map(zip(filepaths_ch1, filepaths_ch2), make_2ch_catalogs)
+	pool.map(make_2ch_catalogs, zip(filepaths_ch1, filepaths_ch2))
