@@ -519,6 +519,6 @@ def make_2ch_catalogs(cat_tuple, tol=2/3600.):
 	matched2.index = pd.Index(np.arange(matched2.shape[0]))
 	df_matched = pd.concat([matched1, matched2], 1)
 
-	out_path = '/'.join(ch1.split('/')[:-1])+'/{}_2ch_matched.csv'.format(reg1)
+	out_path = '/'.join(ch1.split('/')[:-2])+'/{}_2ch_matched.csv'.format(reg1)
 	df_matched.to_csv(out_path, index=False, float_format='%.8f')
 	print('created file: '+out_path)
