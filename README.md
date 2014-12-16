@@ -18,6 +18,7 @@ and [astrolib](http://idlastro.gsfc.nasa.gov/).
 Python requirements:
 - numpy
 - scipy
+- pandas
 - multiprocessing
 - simplejson
 - pyyaml
