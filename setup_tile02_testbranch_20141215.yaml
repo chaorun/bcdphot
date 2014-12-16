@@ -20,6 +20,6 @@ regions:
   - '50063616'
   - '50066432'
   - '50066688'
-  radec:
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
   - {filepath: /home/jlivings/spikes/mopex/tile02/ch1/Combine-mosaic/radec.txt, channel: 1}
   - {filepath: /home/jlivings/spikes/mopex/tile02/ch2/Combine-mosaic/radec.txt, channel: 2}

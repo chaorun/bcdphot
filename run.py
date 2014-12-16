@@ -15,6 +15,7 @@ from bcd_phot import cull_bad_measurements
 from bcd_phot import combine_hdr_catalogs
 from bcd_phot import uncorrect_red_sources
 from bcd_phot import sigma_clip_non_hdr
+from bcd_phot import make_2ch_catalogs
 
 # instantiate the pool for parallel processing
 ncpus = multiprocessing.cpu_count()
@@ -109,3 +110,6 @@ if is_hdr:
 else:
 	filepaths = list(find_files(out_dir, '*catalog.txt'))
 	pool.map(sigma_clip_non_hdr, filepaths)
+	filepaths_ch1 = list(find_files(out_dir, '*_1_catalog_sigclip.txt'))
+	filepaths_ch2 = list(find_files(out_dir, '*_2_catalog_sigclip.txt'))
+	pool.map(zip(filepaths_ch1, filepaths_ch2), make_2ch_catalogs)

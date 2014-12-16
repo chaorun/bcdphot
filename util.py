@@ -244,6 +244,20 @@ def ordinary_least_squares(y, X, intercept=False):
 		return np.dot( np.dot( np.linalg.inv( np.dot(X.T, X) ), X.T), y )
 
 
+def match_cats(df1, df2, tol=2/3600.):
+	assert 'ra' in df1.columns
+	assert 'dec' in df1.columns
+	assert 'ra' in df2.columns
+	assert 'dec' in df2.columns
+	if df1.shape[0] < df2.shape[0]:
+		idx1, idx2, ds = spherematch(df1.ra, df1.dec, 
+			df2.ra, df2.dec, tolerance=tol)
+	else:
+		idx2, idx1, ds = spherematch(df2.ra, df2.dec, 
+			df1.ra, df1.dec, tolerance=tol)
+	return idx1, idx2
+
+
 def setup_output_dirs(setup):
 
 	regions = setup['regions']

@@ -7,12 +7,14 @@ import pyfits
 import numpy as np
 import simplejson as json
 import subprocess, shlex
+import pandas as pd
 from util import get_filepaths
 from util import spherical_to_cartesian
 from util import radec_to_coords
 from util import great_circle_distance
 from util import spherematch
 from util import ordinary_least_squares
+from util import match_cats
 from itertools import groupby
 
 
@@ -488,4 +490,27 @@ def sigma_clip_non_hdr(filepath):
 	out_path = filepath.replace('.txt', '_sigclip.txt')
 	header = ' '.join(names[1:])
 	np.savetxt(out_path, data, fmt = fmt, header = header, comments='')
+	print('created file: '+out_path)
+
+
+def make_2ch_catalogs(cat_tuple, tol=2/3600.):
+
+	ch1, ch2 = cat_tuple
+	reg1 = ch1.split('/')[-1].split('_')[0]
+	reg2 = ch2.split('/')[-1].split('_')[0]
+	assert reg1 == reg2
+
+	df1 = pd.read_csv(ch1, sep=' ')
+	df2 = pd.read_csv(ch2, sep=' ')
+
+	idx1, idx2 = match_cats(df1, df2, tol=tol)
+	matched1 = df1.loc[idx1]
+	matched2 = df2.loc[idx2]
+	ch1_cols = [i+'_1' for i in df1.columns.tolist()]
+	ch2_cols = [i+'_2' for i in df2.columns.tolist()]
+	matched = np.concatenate([matched1.values, matched2.values], 1)
+
+	df_matched = pd.DataFrame(matched, columns=ch1_cols+ch2_cols)
+	out_path = '/'.join(ch1.split('/')[:-1])+'/{}_2ch_matched.csv'.format(reg1)
+	df_matched.to_csv(out_path, index=False, float_format='%.8f')
 	print('created file: '+out_path)

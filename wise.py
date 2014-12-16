@@ -9,7 +9,7 @@ from util import find_files
 from util import spherematch
 from util import great_circle_distance
 from util import spz_jy_to_mags
-
+from util import match_cats
 
 def get_url(ra, dec, radius):
 
@@ -158,20 +158,6 @@ def plot_wise(cat_path):
 		plt.close()
 
 
-def match_cats(df1, df2, tol=2/3600.):
-	assert 'ra' in df1.columns
-	assert 'dec' in df1.columns
-	assert 'ra' in df2.columns
-	assert 'dec' in df2.columns
-	if df1.shape[0] < df2.shape[0]:
-		idx1, idx2, ds = spherematch(df1.ra, df1.dec, 
-			df2.ra, df2.dec, tolerance=tol)
-	else:
-		idx2, idx1, ds = spherematch(df2.ra, df2.dec, 
-			df1.ra, df1.dec, tolerance=tol)
-	return idx1, idx2
-
-
 def plot(x, y, outpath, xlabel, ylabel, plot_style, plot_type):
 	if plot_type == 'mag-mag':
 		xlim = (10, 18)
@@ -233,8 +219,8 @@ def plot_spz_vs_wise(cat_path, plot_style='scatter'):
 		matched2 = df2.loc[idx2]
 		ch1_cols = [i+'_1' for i in df1.columns.tolist()]
 		ch2_cols = [i+'_2' for i in df2.columns.tolist()]
-		matched1.columns = ch1_cols	
-		matched2.columns = ch2_cols
+		# matched1.columns = ch1_cols	
+		# matched2.columns = ch2_cols
 		# matched = pd.concat([matched1, matched2], 1, ignore_index=True)	# weird error
 		matched = np.concatenate([matched1.values, matched2.values], 1)
 		df_matched = pd.DataFrame(matched, columns=ch1_cols+ch2_cols)
@@ -318,8 +304,8 @@ def plot_spz_vs_wise_sdss_class(cat_path, plot_style='scatter'):
 		matched2 = df2.loc[idx2]
 		ch1_cols = [i+'_1' for i in df1.columns.tolist()]
 		ch2_cols = [i+'_2' for i in df2.columns.tolist()]
-		matched1.columns = ch1_cols	
-		matched2.columns = ch2_cols
+		# matched1.columns = ch1_cols	
+		# matched2.columns = ch2_cols
 		# matched = pd.concat([matched1, matched2], 1, ignore_index=True)	# weird error
 		matched = np.concatenate([matched1.values, matched2.values], 1)
 		df_matched = pd.DataFrame(matched, columns=ch1_cols+ch2_cols)
