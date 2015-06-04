@@ -309,13 +309,14 @@ def calculate_full_uncertainties(phot_groups_filepath):
 	ch = json.load(open(phot_groups_filepath))
 
 	# calculate the systematic uncertainties
-	flux, n_obs, mad = [], [], []
+	flux, flux_med, n_obs, mad = [], [], [], []
 	for key in ch:
 		flux_i = [obs[6] for obs in ch[key]]
 		flux.append( np.mean( flux_i ) )
+		flux_med.append( np.median( flux_i ) )
 		n_obs.append( len(ch[key]) )
 		mad.append( np.median(np.abs(flux_i-np.median(flux_i))) )
-	flux, n_obs, mad = map(np.array, (flux, n_obs, mad))
+	flux, flux_med, n_obs, mad = map(np.array, (flux, flux_med, n_obs, mad))
 	flux_n2 = flux[n_obs > 2]
 	idx = np.argsort(flux_n2)
 	min_flux = flux_n2[idx][-100]
@@ -323,7 +324,25 @@ def calculate_full_uncertainties(phot_groups_filepath):
 	# brightest = (flux > np.percentile(flux, 99)) & (n_obs > 1)
 	sigma_sys = np.median(mad[brightest] / flux[brightest])
 
-	# print the systematic uncertainty to stdout
+	# new: sigma-clipped mean
+	n = 10
+	flux_clip = []
+	n_obs_clip = []
+	for key in ch:
+		flux_i = np.array( [obs[6] for obs in ch[key]] )
+		sigma_phot = np.array( [obs[7]/obs[6] for obs in ch[key]] )
+		sigma_tot = np.sqrt( sigma_phot**2 + sigma_sys**2 )
+		sigma_flux_units = flux_i * sigma_tot
+		sigma = np.median(sigma_flux_units)
+		upper = np.median(flux_i) + n * sigma
+		lower = np.median(flux_i) - n * sigma
+		idx = (flux_i > lower) & (flux_i < upper)
+		flux_clip.append( np.mean(flux_i[idx]) )
+		n_obs_clip.append(idx.sum())
+	flux_clip = np.array(flux_clip)
+	n_obs_clip = np.array(n_obs_clip)
+
+	# save the systematic uncertainty
 	if 'hdr' in meta.keys():
 		msg = "region: {}, channel: {}, exposure: {}\n"+\
 		"systematic uncertainty: {}\n"+\
@@ -354,15 +373,15 @@ def calculate_full_uncertainties(phot_groups_filepath):
 	sigma_tot = np.sqrt(sigma_phot**2 + sigma_sys**2)
 
 	# write to disk
-	# columns: id, ra, dec, flux, unc, n_obs
+	# columns: id, ra, dec, flux, flux_med, unc, n_obs
 	ids, ra, dec = [], [], []
 	for key in ch:
 		ids.append(int(key))
 		ra.append(np.mean([obs[2] for obs in ch[key]]))
 		dec.append(np.mean([obs[3] for obs in ch[key]]))
-	data = np.c_[ids, ra, dec, flux, flux*sigma_tot, n_obs]
-	header = 'id ra dec flux unc n_obs'
-	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']	
+	data = np.c_[ids, ra, dec, flux, flux*sigma_tot, flux_med, flux_med*sigma_tot, flux_clip, flux_clip*sigma_tot, n_obs, n_obs_clip]
+	header = 'id ra dec flux unc flux_med unc_med flux_clip unc_clip n_obs n_obs_clip'
+	fmt = ['%i']+['%0.8f']*2+['%.4e']*6+['%i']*2
 	idx = np.argsort(ids)
 	if 'hdr' in meta.keys():
 		out_name = '_'.join([meta['name'], meta['channel'], meta['hdr'],
@@ -474,19 +493,19 @@ def sigma_clip_non_hdr(filepath):
 	data = np.recfromtxt(filepath, names=names)
 
 	# get rid of low SNR sources
-	snr = data['flux'] / data['unc']
+	snr = data['flux_med'] / data['unc_med']
 	good = snr >= meta['sigma_clip']
 	data = data[good]
 
 	# get rid of any remaining negative flux sources
-	good = data['flux'] > 0
+	good = (data['flux_med'] > 0) #& (data['flux_clip'] > 0)
 	data = data[good]
 
 	# get rid of id column
-	data = data[['ra', 'dec', 'flux', 'unc', 'n_obs']]
+	data = data[['ra', 'dec', 'flux', 'unc', 'flux_med', 'unc_med', 'flux_clip', 'unc_clip', 'n_obs', 'n_obs_clip']]
 
 	# write to disk
-	fmt = ['%0.8f']*2+['%.4e']*2+['%i']
+	fmt = ['%0.8f']*2+['%.4e']*6+['%i']*2
 	out_path = filepath.replace('.txt', '_sigclip.txt')
 	header = ' '.join(names[1:])
 	np.savetxt(out_path, data, fmt = fmt, header = header, comments='')
