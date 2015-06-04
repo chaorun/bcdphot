@@ -6,6 +6,7 @@ bcdphot_dir = '/Users/jlivings/data/spikes/bcdphot'
 sys.path.append(bcdphot_dir)
 from util import spherematch, spz_jy_to_mags, get_complement
 import matplotlib.pyplot as plt
+from scipy.stats import gaussian_kde
 
 
 cat_dir = '/Users/jlivings/data/spikes/railspikes_database_prep/complete_cats'
@@ -211,3 +212,57 @@ plt.ylim(-0.25,0.25)
 # plt.show()
 plt.savefig(os.path.join(out_dir, 'kobs_colormag.png'))
 plt.close()
+
+
+def plot_contour(x, y, bins, levels=None, nlevels=10, cmap=plt.cm.gist_gray):
+	Z, x, y = np.histogram2d(x, y, bins=bins, normed=True)
+	xc = [np.mean(x[i:i+2]) for i in range(len(x)-1)]
+	yc = [np.mean(y[i:i+2]) for i in range(len(y)-1)]
+	X, Y = np.meshgrid(xc, yc)
+	if levels:
+		plt.contourf(X, Y, Z.T, levels=levels, cmap=cmap)
+	else:
+		plt.contourf(X, Y, Z.T, nlevels, cmap=cmap)
+
+# idx = ~(kois.i1_mag.isnull() | kois.i1i2color.isnull())
+idx = (-0.2 < kois.i1i2color) & (kois.i1i2color < 0.2) & \
+	(9 < kois.i1_mag) & (kois.i1_mag < 15)
+plot_contour(kois.i1_mag[idx], kois.i1i2color[idx], 10)
+plt.show()
+
+# idx = ~(kobs.i1_mag.isnull() | kobs.i1i2color.isnull())
+idx = (-0.2 < kobs.i1i2color) & (kobs.i1i2color < 0.2) & \
+	(9 < kobs.i1_mag) & (kobs.i1_mag < 15)
+plot_contour(kobs.i1_mag[idx], kobs.i1i2color[idx], 50)
+plt.show()
+
+def kernel_2d(x, y):
+	data = np.c_[x, y]
+	xmin, ymin = data.min(axis=0)
+	xmax, ymax = data.max(axis=0)
+	X, Y = np.mgrid[xmin:xmax:100j, ymin:ymax:100j]
+	positions = np.vstack([X.ravel(), Y.ravel()])
+	kernel = gaussian_kde(data.T)
+	Z = np.reshape(kernel(positions).T, X.shape)
+	Z /= Z.sum()
+	return X, Y, Z
+
+# idx = ~(kois.i1_mag.isnull() | kois.i1i2color.isnull())
+idx = (-0.1 < kois.i1i2color) & (kois.i1i2color < 0.1) & \
+	(9 < kois.i1_mag) & (kois.i1_mag < 15)
+X, Y, Z = kernel_2d(kois.i1_mag[idx], kois.i1i2color[idx])
+plt.contourf(X, Y, Z, 50, cmap=plt.cm.gist_gray)
+plt.contour(X, Y, Z, 10, cmap=plt.cm.gist_earth_r)
+plt.savefig(os.path.join(out_dir, 'kois_colormag_k2d.png'))
+plt.close()
+# plt.show()
+
+# idx = ~(kobs.i1_mag.isnull() | kobs.i1i2color.isnull())
+idx = (-0.1 < kobs.i1i2color) & (kobs.i1i2color < 0.1) & \
+	(9 < kobs.i1_mag) & (kobs.i1_mag < 15)
+X, Y, Z = kernel_2d(kobs.i1_mag[idx], kobs.i1i2color[idx])
+plt.contourf(X, Y, Z, 50, cmap=plt.cm.gist_gray)
+plt.contour(X, Y, Z, 10, cmap=plt.cm.gist_earth_r)
+plt.savefig(os.path.join(out_dir, 'kobs_colormag_k2d.png'))
+plt.close()
+# plt.show()
