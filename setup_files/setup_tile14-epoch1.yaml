@@ -1,0 +1,11 @@
+params: {data_dir: /home/jlivings/spikes/data,
+out_dir: /home/jlivings/spikes/bcdphot/bcdphot_out/tile14-epoch1_badpix,
+cbcd: true,
+hdr: false,
+idl_path: /usr/admin/local/itt/idl70/bin/idl,
+max_cov: 20,
+mask: true}
+regions:
+- aors: ['47764736', '47764992', '47765248', '47765504', '47765760']
+  name: 'tile14-epoch1'
+  radec: [/home/jlivings/spikes/bcdphot/source_lists/kobs-tile14_1_radec.txt, /home/jlivings/spikes/bcdphot/source_lists/kobs-tile14_2_radec.txt]

@@ -1,0 +1,19 @@
+params: {data_dir: /home/jlivings/spikes/data,
+  out_dir: /home/jlivings/spikes/bcdphot/bcdphot_out/tile14-epoch1_new,
+  cbcd: true,
+  hdr: false,
+  idl_path: /usr/admin/local/itt/idl70/bin/idl,
+  max_cov: 12,
+  mask: true,
+  min_snr: 0.5,
+  max_dist: 3,
+  long_cutoff_ch1: 10,
+  long_cutoff_ch2: 12,
+  short_cutoff_ch1: 250,
+  short_cutoff_ch2: 350,
+  sigma_clip: 3,
+  centroid: false}
+regions:
+- aors: ['47764736', '47764992', '47765248', '47765504', '47765760']
+  name: 'tile14-epoch1'
+  radec: [/home/jlivings/spikes/bcdphot/source_lists/all-tile14-epoch1_1_radec.txt, /home/jlivings/spikes/bcdphot/source_lists/all-tile14-epoch1_2_radec.txt]

@@ -1,0 +1,187 @@
+params: {data_dir: /home/jlivings/spikes/data,
+  out_dir: /home/jlivings/spikes/bcdphot/bcdphot_out/tile0208121416171819202324,
+  cbcd: true,
+  hdr: false, # if true, must also supply long_cutoff_ch1, long_cutoff_ch2, etc.
+  idl_path: /usr/local/itt/idl70/bin/idl,
+  max_cov: 12,
+  mask: true,
+  snr_dist_cull: false, # if true, must also supply min_snr and max_dist values
+  sigma_clip: 3,
+  centroid: false}
+regions:
+
+- name: 'tile02'
+  aors:
+  - '50050816'
+  - '50051072'
+  - '50056960'
+  - '50058752'
+  - '50061824'
+  - '50062592'
+  - '50063616'
+  - '50066432'
+  - '50066688'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile02/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile02/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile08'
+  aors:
+  - '50059008'
+  - '50059264'
+  - '50059520'
+  - '50059776'
+  - '50060032'
+  - '50060800'
+  - '50062080'
+  - '50065920'
+  - '50066176'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile08/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile08/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile12'
+  aors:
+  - '50052864'
+  - '50053376'
+  - '50054400'
+  - '50055680'
+  - '50055936'
+  - '50056448'
+  - '50057472'
+  - '50060288'
+  - '50070272'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile12/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile12/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile14-epoch1'
+  aors:
+  - '47764736'
+  - '47764992'
+  - '47765248'
+  - '47765504'
+  - '47765760'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile14-epoch1/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile14-epoch1/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile14-epoch2'
+  aors:
+  - '50109696'
+  - '50109952'
+  - '50110208'
+  - '50111232'
+  - '50111488'
+  - '50111744'
+  - '50112768'
+  - '50116864'
+  - '50117632'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile14-epoch2/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile14-epoch2/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile16'
+  aors:
+  - '50109440'
+  - '50110720'
+  - '50110976'
+  - '50113536'
+  - '50114048'
+  - '50115840'
+  - '50116096'
+  - '50117120'
+  - '50117376'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile16/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile16/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile17'
+  aors:
+  - '51878656'
+  - '51878912'
+  - '51879168'
+  - '51879424'
+  - '51879680'
+  - '51880448'
+  - '51880704'
+  - '51880960'
+  - '51881216'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile17/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile17/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile18'
+  aors:
+  - '51879936'
+  - '51880192'
+  - '51881472'
+  - '51881728'
+  - '51881984'
+  - '51882240'
+  - '51882496'
+  - '51882752'
+  - '51883008'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile18/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile18/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile19'
+  aors:
+  - '52231936'
+  - '52232704'
+  - '52232960'
+  - '52233216'
+  - '52233472'
+  - '52233728'
+  - '52234496'
+  - '52234752'
+  - '52236032'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile19/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile19/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile20'
+  aors:
+  - '52232192'
+  - '52232448'
+  - '52233984'
+  - '52234240'
+  - '52235008'
+  - '52235264'
+  - '52235520'
+  - '52235776'
+  - '52236288'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile20/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile20/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile23'
+  aors:
+  - '52320000'
+  - '52320256'
+  - '52320512'
+  - '52320768'
+  - '52321024'
+  - '52321280'
+  - '52321536'
+  - '52321792'
+  - '52322048'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile23/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile23/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile24'
+  aors:
+  - '52339456'
+  - '52339712'
+  - '52339968'
+  - '52340224'
+  - '52340480'
+  - '52340736'
+  - '52340992'
+  - '52341248'
+  - '52341504'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile24/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile24/ch2/Combine-mosaic/radec.txt, channel: 2}

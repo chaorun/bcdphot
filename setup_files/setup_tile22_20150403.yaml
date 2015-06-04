@@ -2,7 +2,7 @@ params: {data_dir: /home/jlivings/spikes/data,
   out_dir: /home/jlivings/spikes/bcdphot/bcdphot_out/tile22,
   cbcd: true,
   hdr: false, # if true, must also supply long_cutoff_ch1, long_cutoff_ch2, etc.
-  idl_path: /usr/admin/local/itt/idl70/bin/idl,
+  idl_path: /usr/local/itt/idl70/bin/idl,
   max_cov: 12,
   mask: true,
   snr_dist_cull: false, # if true, must also supply min_snr and max_dist values

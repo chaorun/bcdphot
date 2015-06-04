@@ -1,0 +1,41 @@
+params: {data_dir: /home/jlivings/spikes/data,
+  out_dir: /home/jlivings/spikes/bcdphot/bcdphot_oout/setup_tile1718_testbranch_20141223,
+  cbcd: true,
+  hdr: false, # if true, must also supply long_cutoff_ch1, long_cutoff_ch2, etc.
+  idl_path: /usr/admin/local/itt/idl70/bin/idl,
+  max_cov: 12,
+  mask: true,
+  snr_dist_cull: false, # if true, must also supply min_snr and max_dist values
+  sigma_clip: 3,
+  centroid: false}
+regions:
+
+- name: 'tile17'
+  aors:
+  - '51878656'
+  - '51878912'
+  - '51879168'
+  - '51879424'
+  - '51879680'
+  - '51880448'
+  - '51880704'
+  - '51880960'
+  - '51881216'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile17/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile17/ch2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile18'
+  aors:
+  - '51879936'
+  - '51880192'
+  - '51881472'
+  - '51881728'
+  - '51881984'
+  - '51882240'
+  - '51882496'
+  - '51882752'
+  - '51883008'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /home/jlivings/spikes/mopex/tile18/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /home/jlivings/spikes/mopex/tile18/ch2/Combine-mosaic/radec.txt, channel: 2}

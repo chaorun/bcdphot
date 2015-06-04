@@ -1,0 +1,11 @@
+params: {data_dir: /home/jlivings/spikes/data,
+out_dir: /home/jlivings/spikes/bcdphot/bcdphot_out/tile02_2pix,
+cbcd: true,
+hdr: false,
+idl_path: /usr/admin/local/itt/idl70/bin/idl,
+max_cov: 12,
+mask: true}
+regions:
+- aors: ['50050816','50051072','50056960','50058752','50061824','50062592','50063616','50066432','50066688']
+  name: 'tile02'
+  radec: [/home/jlivings/spikes/bcdphot/source_lists/kobs_1_radec.txt, /home/jlivings/spikes/bcdphot/source_lists/kobs_2_radec.txt]
