@@ -258,6 +258,10 @@ def match_cats(df1, df2, tol=2/3600.):
 	return idx1, idx2
 
 
+def get_complement(idx, size):
+	return np.where(np.in1d(np.arange(size), idx, invert=True))[0]
+
+
 def setup_output_dirs(setup):
 
 	regions = setup['regions']

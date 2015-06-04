@@ -15,6 +15,7 @@ from util import great_circle_distance
 from util import spherematch
 from util import ordinary_least_squares
 from util import match_cats
+from util import get_complement
 from itertools import groupby
 
 
@@ -381,7 +382,8 @@ def calculate_full_uncertainties(phot_groups_filepath):
 		dec.append(np.mean([obs[3] for obs in ch[key]]))
 	data = np.c_[ids, ra, dec, flux, flux*sigma_tot, flux_med, flux_med*sigma_tot, flux_clip, flux_clip*sigma_tot, n_obs, n_obs_clip]
 	header = 'id ra dec flux unc flux_med unc_med flux_clip unc_clip n_obs n_obs_clip'
-	fmt = ['%i']+['%0.8f']*2+['%.4e']*6+['%i']*2
+	# fmt = ['%i']+['%0.8f']*2+['%.4e']*6+['%i']*2
+	fmt = ['%i']+['%0.8e']*8+['%i']*2
 	idx = np.argsort(ids)
 	if 'hdr' in meta.keys():
 		out_name = '_'.join([meta['name'], meta['channel'], meta['hdr'],
@@ -470,7 +472,8 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 	idx = np.argsort(data['ra'])
 	data = data[idx]
 	data['id'] = np.arange(1, data.shape[0]+1)
-	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
+	# fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
+	fmt = ['%i']+['%0.8e']*4+['%i']
 	out_name = '_'.join([meta['name'], meta['channel'], 
 		'combined_hdr_catalog.txt'])
 	out_path = '/'.join(['/'.join(work_dir.split('/')[:-1]), out_name])
@@ -505,7 +508,8 @@ def sigma_clip_non_hdr(filepath):
 	data = data[['ra', 'dec', 'flux', 'unc', 'flux_med', 'unc_med', 'flux_clip', 'unc_clip', 'n_obs', 'n_obs_clip']]
 
 	# write to disk
-	fmt = ['%0.8f']*2+['%.4e']*6+['%i']*2
+	# fmt = ['%0.8f']*2+['%.4e']*6+['%i']*2
+	fmt = ['%0.8e']*8+['%i']*2
 	out_path = filepath.replace('.txt', '_sigclip.txt')
 	header = ' '.join(names[1:])
 	np.savetxt(out_path, data, fmt = fmt, header = header, comments='')
@@ -527,7 +531,7 @@ def make_2ch_catalogs(cat_tuple, tol=2/3600.):
 	matched2 = df2.loc[idx2]
 	ch1_cols = [i+'_1' for i in df1.columns.tolist()]
 	ch2_cols = [i+'_2' for i in df2.columns.tolist()]
-	matched1.columns = ch1_cols	
+	matched1.columns = ch1_cols
 	matched2.columns = ch2_cols
 
 	# matched = np.concatenate([matched1.values, matched2.values], 1)
@@ -538,6 +542,39 @@ def make_2ch_catalogs(cat_tuple, tol=2/3600.):
 	matched2.index = pd.Index(np.arange(matched2.shape[0]))
 	df_matched = pd.concat([matched1, matched2], 1)
 
+	for i in df_matched.columns:
+		if i.startswith('n_obs'):
+			df_matched[i] = df_matched[i].astype(int)
+
 	out_path = '/'.join(ch1.split('/')[:-2])+'/{}_2ch_matched.csv'.format(reg1)
 	df_matched.to_csv(out_path, index=False, float_format='%.8f')
+	print('created file: '+out_path)
+
+	# now add rows for the sources with only a single channel detection
+
+	idx1c = get_complement(idx1, df1.shape[0])
+	idx2c = get_complement(idx2, df2.shape[0])
+	not_matched1 = df1.loc[idx1c]
+	not_matched2 = df2.loc[idx2c]
+	not_matched1.columns = ch1_cols
+	not_matched2.columns = ch2_cols
+
+	for col in ch2_cols:
+		not_matched1[col] = np.repeat(np.nan, not_matched1.shape[0])
+	for col in ch1_cols:
+		not_matched2[col] = np.repeat(np.nan, not_matched2.shape[0])
+	not_matched2 = not_matched2[sorted(not_matched2.columns, key=lambda x: x[-1])]
+	assert (not_matched1.columns == not_matched2.columns).all()
+
+	start = df_matched.index[-1] + 1
+	not_matched1.index = pd.Index(np.arange(not_matched1.shape[0]) + start)
+	start = not_matched1.index[-1] + 1
+	not_matched2.index = pd.Index(np.arange(not_matched2.shape[0]) + start)
+	df_not_matched = pd.concat([not_matched1, not_matched2], 0)
+	# df_not_matched = pd.merge(not_matched1, not_matched2, how='outer') # slower
+
+	df_complete = pd.concat([df_matched, df_not_matched], 0)
+
+	out_path = '/'.join(ch1.split('/')[:-2])+'/{}_2ch_complete.csv'.format(reg1)
+	df_complete.to_csv(out_path, index=False, float_format='%.8e')
 	print('created file: '+out_path)
