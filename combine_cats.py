@@ -151,6 +151,7 @@ kic_matched = kic.loc[idx1]
 df_matched = df.loc[idx2]
 for i in df.columns[2:]:
 	kic_matched[i] = df_matched[i].values
+
 outpath = os.path.join(out_dir, 'combined_cats+kic_kois_ukirtj.csv')
 kic_matched.to_csv(outpath, index=False)
 outpath	= os.path.join(out_dir, 'combined_cats_matched_to_kois.pdf')
@@ -161,9 +162,28 @@ plt.close()
 # now add two more columns for colors
 kic_matched['i1i2color'] = kic_matched['i1_mag'] - kic_matched['i2_mag']
 kic_matched['ji2color'] = kic_matched['ukirt_j'] - kic_matched['i2_mag']
-outpath = os.path.join(out_dir, 'combined_cats+kic_kois_ukirtj_color.csv')
-kic_matched.to_csv(outpath, index=False)
 
+# fix formatting
+# force to be int or nan
+cols = ['confirmed', 'kic_tmid', 'kic_scpid', 'kic_altid', 'kic_altsource']
+cols += ['kic_teff', 'kic_catkey', 'kic_scpkey']
+cols += ['i1_obs', 'i2_obs']
+for col in cols:
+	kic_matched[col] = kic_matched[col].map(lambda x: str(x).split('.')[0])
+# force to be rounded to 6 decimal places with no trailing zeros
+cols = kic_matched.columns[kic_matched.dtypes == 'float64']
+for col in cols:
+	kic_matched[col] = kic_matched[col].map(lambda x: str(float('{0:0.6f}'.format(x))))
+
+# write to CSV with 'nan' strings removed
+outpath = os.path.join(out_dir, 'combined_cats+kic_kois_ukirtj_color.csv')
+kic_matched.to_csv('tmp.csv', index=False)#, float_format='%.6f')
+with open(outpath, 'w') as csv:
+	tmp = open('tmp.csv')
+	good = tmp.read().replace('nan','')
+	csv.write(good)
+	os.remove('tmp.csv')
+print('created file: '+outpath)
 
 # step 3: match to the kic kob ukirtj data
 # ------------------------------------------
@@ -189,8 +209,28 @@ plt.close()
 # now add two more columns for colors
 kic_matched['i1i2color'] = kic_matched['i1_mag'] - kic_matched['i2_mag']
 kic_matched['ji2color'] = kic_matched['ukirt_j'] - kic_matched['i2_mag']
+
+# fix formatting
+# force to be int or nan
+cols = ['kic_tmid', 'kic_scpid', 'kic_altid', 'kic_altsource']
+cols += ['kic_teff', 'kic_catkey', 'kic_scpkey']
+cols += ['i1_obs', 'i2_obs']
+for col in cols:
+	kic_matched[col] = kic_matched[col].map(lambda x: str(x).split('.')[0])
+# force to be rounded to 6 decimal places with no trailing zeros
+cols = kic_matched.columns[kic_matched.dtypes == 'float64']
+for col in cols:
+	kic_matched[col] = kic_matched[col].map(lambda x: str(float('{0:0.6f}'.format(x))))
+
+# write to CSV with 'nan' strings removed
 outpath = os.path.join(out_dir, 'combined_cats+kic_kobs_ukirtj_color.csv')
-kic_matched.to_csv(outpath, index=False)
+kic_matched.to_csv('tmp.csv', index=False)#, float_format='%.6f')
+with open(outpath, 'w') as csv:
+	tmp = open('tmp.csv')
+	good = tmp.read().replace('nan','')
+	csv.write(good)
+	os.remove('tmp.csv')
+print('created file: '+outpath)
 
 
 # just plots
