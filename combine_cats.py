@@ -117,6 +117,24 @@ outpath = os.path.join(out_dir, 'combined_cats_zoom.pdf')
 plt.savefig(outpath, dpi=120)
 plt.close()
 
+idx = (df.i1_mag.isnull() & ~df.i2_mag.isnull()) | \
+	(~df.i1_mag.isnull() & df.i2_mag.isnull())
+plt.hist2d(df.ra[idx], df.dec[idx], bins=180, cmap=plt.cm.hot)
+outpath = os.path.join(out_dir, 'nonmatched_sources.pdf')
+plt.savefig(outpath, dpi=120)
+plt.close()
+
+idx1 = (~df.i1_mag.isnull() & df.i2_mag.isnull())
+idx2 = (df.i1_mag.isnull() & ~df.i2_mag.isnull())
+bins = np.histogram(np.hstack([df.i1_mag[idx1].values, df.i2_mag[idx2].values]), bins=100)[1]
+plt.hist(df.i1_mag[idx1].values, bins=bins, color=plt.cm.hot(0.75), alpha=0.5, label='I1')
+plt.hist(df.i2_mag[idx2].values, bins=bins, color=plt.cm.hot(0.25), alpha=0.5, label='I2')
+plt.xlim(8,20)
+plt.legend()
+outpath = os.path.join(out_dir, 'nonmatched_sources_hist.pdf')
+plt.savefig(outpath, dpi=120)
+plt.close()
+# plt.show()
 
 # step 2: match to the kic koi ukirtj data
 # ------------------------------------------
