@@ -141,6 +141,7 @@ plt.close()
 # outpath	= os.path.join(out_dir, 'combined_cats.csv')
 # df = pd.read_csv(outpath)
 kic = pd.read_csv('/Users/jlivings/data/spikes/other_catalogs/kic_kois_ukirtj.csv')
+kic = kic.drop_duplicates(cols='kic_kepler_id')
 ra1, dec1 = kic.kic_ra, kic.kic_dec
 ra2, dec2 = df.ra, df.dec
 if ra1.size < ra2.size:
@@ -283,16 +284,17 @@ def plot_contour(x, y, bins, levels=None, nlevels=10, cmap=plt.cm.gist_gray):
 		plt.contourf(X, Y, Z.T, nlevels, cmap=cmap)
 
 # idx = ~(kois.i1_mag.isnull() | kois.i1i2color.isnull())
-idx = (-0.2 < kois.i1i2color) & (kois.i1i2color < 0.2) & \
-	(9 < kois.i1_mag) & (kois.i1_mag < 15)
-plot_contour(kois.i1_mag[idx], kois.i1i2color[idx], 10)
-plt.show()
+# idx = (-0.2 < kois.i1i2color) & (kois.i1i2color < 0.2) & \
+# 	(9 < kois.i1_mag) & (kois.i1_mag < 15)
+# plot_contour(kois.i1_mag[idx], kois.i1i2color[idx], 10)
+# plt.show()
+
 
 # idx = ~(kobs.i1_mag.isnull() | kobs.i1i2color.isnull())
-idx = (-0.2 < kobs.i1i2color) & (kobs.i1i2color < 0.2) & \
-	(9 < kobs.i1_mag) & (kobs.i1_mag < 15)
-plot_contour(kobs.i1_mag[idx], kobs.i1i2color[idx], 50)
-plt.show()
+# idx = (-0.2 < kobs.i1i2color) & (kobs.i1i2color < 0.2) & \
+# 	(9 < kobs.i1_mag) & (kobs.i1_mag < 15)
+# plot_contour(kobs.i1_mag[idx], kobs.i1i2color[idx], 50)
+# plt.show()
 
 def kernel_2d(x, y):
 	data = np.c_[x, y]
