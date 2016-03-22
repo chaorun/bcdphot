@@ -9,7 +9,6 @@ params: {data_dir: /home/jlivings/spikes/data,
   sigma_clip: 3,
   centroid: false}
 regions:
-
 - name: 'tile22'
   aors:
   - '52341760'
