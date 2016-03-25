@@ -1,5 +1,5 @@
 params: {data_dir: /Users/john/spikes/data,
-  out_dir: /Users/john/spikes/bcdphot_out/t22,
+  out_dir: /Users/john/spikes/bcdphot_out/t14-e1,
   cbcd: true,
   hdr: false, # if true, must also supply long_cutoff_ch1, long_cutoff_ch2, etc.
   idl_path: /Applications/exelis/idl85/bin/idl,
@@ -9,17 +9,14 @@ params: {data_dir: /Users/john/spikes/data,
   sigma_clip: 3,
   centroid: false}
 regions:
-- name: 'tile22'
+
+- name: 'tile14-epoch1'
   aors:
-  - '52341760'
-  - '52342016'
-  - '52342272'
-  - '52342528'
-  - '52342784'
-  - '52343040'
-  - '52343296'
-  - '53510144'
-  - '53510400'
+  - '47764736'
+  - '47764992'
+  - '47765248'
+  - '47765504'
+  - '47765760'
   radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
-  - {filepath: /Users/john/spikes/mopex/tile22/ch1/Combine-mosaic/radec.txt, channel: 1}
-  - {filepath: /Users/john/spikes/mopex/tile22/ch2/Combine-mosaic/radec.txt, channel: 2}
+  - {filepath: /Users/john/spikes/mopex/tile14-epoch1/ch1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /Users/john/spikes/mopex/tile14-epoch1/ch2/Combine-mosaic/radec.txt, channel: 2}
