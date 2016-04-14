@@ -89,7 +89,8 @@ def get_photometry_idl(source_list_path):
 
 		# spawn subprocess to get bcd_phot.pro output for the current image
 		pro_dir = os.path.abspath('pro')
-		cmd = "!path=!path+':{}'&".format(pro_dir)
+		# cmd = "!path=!path+':{}'&".format(pro_dir)
+		cmd = ''
 		cmd += 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+msk_path+'","'+\
 			tmp_radec_path+'",'+channel
 		if metadata['mask']:
