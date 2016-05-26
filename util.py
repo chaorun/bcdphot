@@ -312,10 +312,10 @@ def setup_output_dirs(setup):
 	if params['rmask']:
 		mopex_out_dir = params['mopex_out_dir']
 		# do the same for RMASK files from mopex
-		msk_paths = list(find_files(mopex_out_dir, '*_rmask.fits'))
-		msk_dict = {i.split('/')[-1]:i for i in msk_paths}
+		rmask_paths = list(find_files(mopex_out_dir, '*_rmask.fits'))
+		rmask_dict = {i.split('/')[-1]:i for i in rmask_paths}
 		with open(out_dir+'/rmask_dict.json','w') as w:
-			json.dump(msk_dict, w, indent=' '*4)
+			json.dump(rmask_dict, w, indent=' '*4)
 
 
 	# loop through the source lists (radecfiles) and create output directory

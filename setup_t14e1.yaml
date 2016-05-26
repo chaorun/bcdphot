@@ -1,5 +1,5 @@
 params: {data_dir: /Users/john/spikes/data,
-  out_dir: /Users/john/spikes/bcdphot_out/t14-e1,
+  out_dir: /Users/john/spikes/bcdphot_out/t14-e1-rmask,
   cbcd: true,
   rmask: true, # if true, must supply mopex_out_dir
   mopex_out_dir: /Users/john/spikes/SpiKeS/mopex/t14i1-epoch1,
@@ -15,10 +15,10 @@ regions:
 - name: 'tile14-epoch1'
   aors:
   - '47764736'
-  - '47764992'
-  - '47765248'
-  - '47765504'
-  - '47765760'
+  # - '47764992'
+  # - '47765248'
+  # - '47765504'
+  # - '47765760'
   radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
   - {filepath: /Users/john/spikes/mopex/tile14-epoch1/ch1/Combine-mosaic/radec.txt, channel: 1}
   - {filepath: /Users/john/spikes/mopex/tile14-epoch1/ch2/Combine-mosaic/radec.txt, channel: 2}
