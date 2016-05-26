@@ -25,10 +25,10 @@ def get_filepaths(suffix, data_dir, aors, ch, hdr=False):
 	"""
 	walks directory tree in <data_dir> and populates a list of filepaths
 	matching the specifications given by <suffix>, <aors>, <ch>, <hdr>,
-	where: 
+	where:
 		<suffix> : the filename ending to match, i.e. 'cbcd.fits'
 		<aors> : a list of strings of AOR numbers
-		<ch> : a string containing the channel number of IRAC 
+		<ch> : a string containing the channel number of IRAC
 		<hdr> : a string specifying the HDR exposure: 'long','short', or False
 			if False, the data are assumed to be all the same exposure time
 			(non-HDR mode)
@@ -75,7 +75,7 @@ def mkdirs(dir):
 def get_bcd_subset(bcd_dict, aors, ch, hdr=False):
 
 	"""
-	finds values (full paths) in bcd_dict with keys (file names) 
+	finds values (full paths) in bcd_dict with keys (file names)
 	matching aors, ch, and hdr
 	"""
 
@@ -98,11 +98,11 @@ def get_bcd_subset(bcd_dict, aors, ch, hdr=False):
 
 
 def spherical_to_cartesian(ra, dec):
-	
+
 	"""
 	Inputs in degrees.  Outputs x,y,z
 	"""
-	
+
 	rar = np.radians(ra)
 	decr = np.radians(dec)
 	x = np.cos(rar) * np.cos(decr)
@@ -112,12 +112,12 @@ def spherical_to_cartesian(ra, dec):
 
 
 def radec_to_coords(ra, dec):
-	
+
 	"""
 	Converts the input RA/Dec from spherical degrees to cartesian,
 	then returns an array containing the result.
 	"""
-	
+
 	x, y, z = spherical_to_cartesian(ra, dec)
 	# this is equivalent to, but faster than just doing np.array([x, y, z])
 	coords = np.empty((x.size, 3))
@@ -128,13 +128,13 @@ def radec_to_coords(ra, dec):
 
 
 def great_circle_distance(ra1, dec1, ra2, dec2):
-	
+
 	"""
 	Returns great circle distance.  Inputs in degrees.
 	Uses vicenty distance formula - a bit slower than others, but
 	numerically stable.
 	"""
-	
+
 	from numpy import radians, degrees, sin, cos, arctan2, hypot
 	# terminology from the Vicenty formula - lambda and phi and
 	# "standpoint" and "forepoint"
@@ -185,7 +185,7 @@ def discrete_hist(x):
 
 	"""
 	Histogram generator for discrete valued list input: yields value, count
-	i.e. 
+	i.e.
 	for value, count in discrete_hist(x):
 		print "{}: {}".format(value,count)
 	"""
@@ -228,7 +228,7 @@ def ordinary_least_squares(y, X, intercept=False):
 	design matrix and y is the response variable. If intercept
 	equals True then an additional column of ones is added to the
 	design matrix so that a non-zero intercept term is allowed.
-	
+
 	Returns an array of the parameters where the order corresponds
 	to the columns in the design matrix (with the first being the
 	intercept term if intercept=True), or a single float for the
@@ -250,10 +250,10 @@ def match_cats(df1, df2, tol=2/3600.):
 	assert 'ra' in df2.columns
 	assert 'dec' in df2.columns
 	if df1.shape[0] < df2.shape[0]:
-		idx1, idx2, ds = spherematch(df1.ra, df1.dec, 
+		idx1, idx2, ds = spherematch(df1.ra, df1.dec,
 			df2.ra, df2.dec, tolerance=tol)
 	else:
-		idx2, idx1, ds = spherematch(df2.ra, df2.dec, 
+		idx2, idx1, ds = spherematch(df2.ra, df2.dec,
 			df1.ra, df1.dec, tolerance=tol)
 	return idx1, idx2
 
@@ -263,7 +263,7 @@ def setup_output_dirs(setup):
 	regions = setup['regions']
 	params = setup['params']
 
-	# check to see whether to use CBCD or BCD files 
+	# check to see whether to use CBCD or BCD files
 	# (and consequently CBUNC or BUNC files)
 	if params['cbcd']:
 		bcd_suffix = '*_cbcd.fits'
@@ -276,7 +276,7 @@ def setup_output_dirs(setup):
 	# there will be additional directory structure in the output directory.
 	is_hdr = params['hdr']
 
-	if setup['params']['snr_dist_cull']:
+	if params['snr_dist_cull']:
 		# get the minimum SNR value for an individual measurement to be kept
 		min_snr = params['min_snr']
 		# get the maximum distance from input RA/Dec to centroid position [arcsec]
@@ -308,6 +308,15 @@ def setup_output_dirs(setup):
 	msk_dict = {i.split('/')[-1]:i for i in msk_paths}
 	with open(out_dir+'/msk_dict.json','w') as w:
 		json.dump(msk_dict, w, indent=' '*4)
+
+	if params['rmask']:
+		mopex_out_dir = params['mopex_out_dir']
+		# do the same for RMASK files from mopex
+		msk_paths = list(find_files(mopex_out_dir, '*_rmask.fits'))
+		msk_dict = {i.split('/')[-1]:i for i in msk_paths}
+		with open(out_dir+'/rmask_dict.json','w') as w:
+			json.dump(msk_dict, w, indent=' '*4)
+
 
 	# loop through the source lists (radecfiles) and create output directory
 	# structure and metadata files used throughout the rest of the pipeline
@@ -358,10 +367,18 @@ def setup_output_dirs(setup):
 				json.dump(msk_dict_subset, w, indent=' '*4)
 			print('created: '+msk_dict_path)
 
+			if params['rmask']:
+				rmask_paths_subset = get_bcd_subset(rmask_dict, aors, ch)
+				rmask_dict_path = work_dir+'/rmask_dict.json'
+				rmask_dict_subset = {i.split('/')[-1]:i for i in rmask_paths_subset}
+				with open(rmask_dict_path,'w') as w:
+					json.dump(rmask_dict_subset, w, indent=' '*4)
+				print('created: '+rmask_dict_path)
+
 			metadata = {
 				'name': name,
-				'data_dir':data_dir,
-				'work_dir':work_dir,
+				'data_dir': data_dir,
+				'work_dir': work_dir,
 				'out_dir': out_dir,
 				'radecfile': radec['filepath'],
 				'bcd_dict_path': bcd_dict_path,
@@ -376,9 +393,16 @@ def setup_output_dirs(setup):
 				'sigma_clip':params['sigma_clip'],
 				'centroid':params['centroid']
 				}
+
+			if params['rmask']:
+				metadata['rmask'] = params['rmask']
+				metadata['mopex_out_dir'] = params['mopex_out_dir']
+				metadata['rmask_dict_path'] = rmask_dict_path
+
 			if setup['params']['snr_dist_cull']:
 				metadata['min_snr'] = min_snr
 				metadata['max_dist'] = max_dist
+
 			if is_hdr:
 				if ch == '1':
 					metadata['long_cutoff'] = params['long_cutoff_ch1']
@@ -387,7 +411,9 @@ def setup_output_dirs(setup):
 					metadata['long_cutoff'] = params['long_cutoff_ch2']
 					metadata['short_cutoff'] = params['short_cutoff_ch2']
 				metadata['hdr'] = hdr
+
 			metadata_path = work_dir+'/metadata.json'
+
 			with open(metadata_path,'w') as w:
 				json.dump(metadata, w, indent=' '*4)
 			print('created: '+metadata_path)

@@ -19,20 +19,20 @@ from itertools import groupby
 
 
 def get_k_closest_idx(ra, dec, tree, k=10):
-	
+
 	"""
 	Converts RA/Dec to a cartesian coordinate array, then
 	queries the input k-d tree to return nearest neighbors.
 	Defaults to k=10 nearest neighbors.
 	"""
-	
+
 	coords = radec_to_coords(ra, dec)
 	idx = tree.query(coords,k=k)[1].ravel()
 	return idx
 
 
 def get_photometry_idl(source_list_path):
-	
+
 	"""
 	Loop through the BCD files and get photometry on all associated sources.
 	Returns arrays containing the output from bcd_phot.pro.
@@ -50,6 +50,9 @@ def get_photometry_idl(source_list_path):
 	bcd_dict = json.load(open(metadata['bcd_dict_path']))
 	unc_dict = json.load(open(metadata['unc_dict_path']))
 	msk_dict = json.load(open(metadata['msk_dict_path']))
+	rmask = metadata['rmask']
+	if rmask:
+		rmask_dict = json.load(open(metadata['rmask_dict_path']))
 
 	# initialize photometry output files with column names
 	good_hdr = '# id ra dec ra_cen dec_cen x_cen y_cen flux_mjy unc_mjy '+\
@@ -88,12 +91,24 @@ def get_photometry_idl(source_list_path):
 		np.savetxt(tmp_radec_path,s,fmt=['%i']+['%.9f']*2)
 
 		# spawn subprocess to get bcd_phot.pro output for the current image
-		cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+msk_path+'","'+\
-			tmp_radec_path+'",'+channel
-		if metadata['mask']:
-			cmd += ',/use_mask'
-		if metadata['centroid']:
-			cmd += ',/centroid'
+		if metadata['rmask']:
+			rmask_dict_path = metadata['rmask_dict_path']
+			rmask_key = key.replace('.fits', '_rmask.fits')
+			rmask_path = rmask_dict[key]
+			cmd = 'bcd_phot2'+',"'+bcd_path+'","'+unc_path+'","'+msk_path+'","'+\
+				rmask_path+'",'+tmp_radec_path+'",'+channel
+			if metadata['mask']:
+				cmd += ',/use_mask'
+			if metadata['centroid']:
+				cmd += ',/centroid'
+		else:
+			cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+msk_path+'","'+\
+				tmp_radec_path+'",'+channel
+			if metadata['mask']:
+				cmd += ',/use_mask'
+			if metadata['centroid']:
+				cmd += ',/centroid'
+
 		returncode = subprocess.call([idl,'-quiet','-e',cmd], 
 			stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 
@@ -106,26 +121,26 @@ def get_photometry_idl(source_list_path):
 
 
 def get_phot_groups(good_arr):
-	
+
 	"""
 	Use source ID numbers to collect photometry results of the same source
 	into groups.
 	"""
 
 	# convert input array to list sorted by value of 'id' key of its elements
-	good_lst_dct = sorted([{'id': int(i[0]), 'data': i[1:].tolist()} 
+	good_lst_dct = sorted([{'id': int(i[0]), 'data': i[1:].tolist()}
 		for i in good_arr], key = lambda x: x['id'])
 
 	# use a dict comprehension with groupby to get photometry groups
-	phot_groups_dict = { key: [i['data'] for i in group] for 
+	phot_groups_dict = { key: [i['data'] for i in group] for
 		key, group in groupby(good_lst_dct, lambda x: x['id']) }
 	return phot_groups_dict
 
 
 def get_bcd_phot(source_list_path):
-	
+
 	"""
-	Reads the output of map_bcd_sources() 'source_list.json' and 
+	Reads the output of map_bcd_sources() 'source_list.json' and
 	calls the functions get_photometry_idl() and get_phot_groups(),
 	which in turn get photometry from IDL subprocesses and process
 	the output.
@@ -136,7 +151,7 @@ def get_bcd_phot(source_list_path):
 	# call get_photometry_idl() with output of map_bcd_sources()
 	good_arr, bad_arr = get_photometry_idl(source_list_path)
 
-	# collapse the output to their groupings, i.e. groups of 
+	# collapse the output to their groupings, i.e. groups of
 	# measurements of the same star
 	phot_groups_dict = get_phot_groups(good_arr)
 	outfile = work_dir+'/phot_groups.json'
@@ -156,7 +171,7 @@ def cull_bad_measurements(phot_groups_filepath):
 
 	"""
 	Eliminates bad measurements from the groups of measurements
-	for each source. Uses a SNR cutoff and a proximity cutoff, 
+	for each source. Uses a SNR cutoff and a proximity cutoff,
 	such that only sources with SNR above min_snr and with centroids
 	less than max_dist from the input RA/Dec position will survive.
 	max_dist is in units of arcsec.
@@ -209,7 +224,7 @@ def cull_bad_measurements(phot_groups_filepath):
 def apply_array_location_correction(phot_groups_filepath):
 
 	"""
-	Reads the phot_groups.json files and applies the array 
+	Reads the phot_groups.json files and applies the array
 	location correction to all measurements of ALL sources.
 	Writes the result to disk in work_dir as
 	'phot_groups_arrayloc.json'
@@ -242,11 +257,11 @@ def apply_array_location_correction(phot_groups_filepath):
 
 def uncorrect_red_sources(phot_groups_filepath_tuple):
 
-	"""	
+	"""
 	identify the 'red' sources by comparing ch1 to ch2 energies, then find their
 	entries in the single-exposure catalogs and un-correct (divide) the
 	array location dependent correction. red = ch1_flux < 3.6/4.5 * ch2_flux
-	"""	
+	"""
 
 	ch1_file, ch2_file = phot_groups_filepath_tuple
 
@@ -338,7 +353,7 @@ def calculate_full_uncertainties(phot_groups_filepath):
 		"systematic uncertainty: {}\n"+\
 		"calculated from {} datapoints\n"+\
 		"average number of measurements: {}"
-		msg = msg.format(meta['name'], meta['channel'], 
+		msg = msg.format(meta['name'], meta['channel'],
 			sigma_sys, brightest.sum(), n_obs[brightest].mean())
 		with open(work_dir+'/systematic_uncertainty.txt','w') as w:
 			w.write(msg)
@@ -362,7 +377,7 @@ def calculate_full_uncertainties(phot_groups_filepath):
 		dec.append(np.mean([obs[3] for obs in ch[key]]))
 	data = np.c_[ids, ra, dec, flux, flux*sigma_tot, n_obs]
 	header = 'id ra dec flux unc n_obs'
-	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']	
+	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
 	idx = np.argsort(ids)
 	if 'hdr' in meta.keys():
 		out_name = '_'.join([meta['name'], meta['channel'], meta['hdr'],
@@ -381,10 +396,10 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 	single-channel catalogs for a given region and channel. The result is
 	a single catalog containing the union of all sources in both short and
 	long exposure catalogs, with the short exposure measurements being used
-	for the brighter sources, and the long exposure measurements used for 
-	the fainter sources. The cutoff between the two is determined by the 
-	parameter 'hdr_cutoff' in the metadata file and should be set to the 
-	saturation limit for the long exposure data (there are actually 2 
+	for the brighter sources, and the long exposure measurements used for
+	the fainter sources. The cutoff between the two is determined by the
+	parameter 'hdr_cutoff' in the metadata file and should be set to the
+	saturation limit for the long exposure data (there are actually 2
 	parameters, one for each channel: hdr_cutoff_ch1, hdr_cutoff_ch2).
 	"""
 
@@ -404,7 +419,7 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 	long_flux = long_cat.flux[idx_l]
 	short_ra, short_dec = short_cat.ra[idx_s], short_cat.dec[idx_s]
 	long_ra, long_dec = long_cat.ra[idx_l], long_cat.dec[idx_l]
-	idx1, idx2, ds = spherematch(short_ra, short_dec, long_ra, 
+	idx1, idx2, ds = spherematch(short_ra, short_dec, long_ra,
 		long_dec, tolerance=1/3600.)
 	y = short_flux[idx1]
 	X = long_flux[idx2]
@@ -422,14 +437,14 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 	# before concatenation of long and short subsets, check for any duplicates
 	# (if they exist they should tend to have flux very close to the cutoff)
 	ls, ss = long_cat[idx_faint], short_cat[idx_bright]
-	idx_s, idx_l, ds = spherematch(ss.ra, ss.dec, ls.ra, ls.dec, 
+	idx_s, idx_l, ds = spherematch(ss.ra, ss.dec, ls.ra, ls.dec,
 		tolerance=1/3600.)
 	dup_ids = []
 	for idx in idx_l:
 		if (ls.flux[idx] > 0.9 * meta['long_cutoff']) & \
 			(ls.flux[idx] < meta['long_cutoff']):
 			dup_ids.append(ls.id[idx])
-	
+
 	# now use the ids of the duplicates to delete them from the long dataset
 	for idx in dup_ids:
 		ls = ls[ls.id != idx]
@@ -452,7 +467,7 @@ def combine_hdr_catalogs(catalog_filepaths_tuple):
 	data = data[idx]
 	data['id'] = np.arange(1, data.shape[0]+1)
 	fmt = ['%i']+['%0.8f']*2+['%.4e']*2+['%i']
-	out_name = '_'.join([meta['name'], meta['channel'], 
+	out_name = '_'.join([meta['name'], meta['channel'],
 		'combined_hdr_catalog.txt'])
 	out_path = '/'.join(['/'.join(work_dir.split('/')[:-1]), out_name])
 	np.savetxt(out_path, data, fmt = fmt, header = header)
@@ -508,7 +523,7 @@ def make_2ch_catalogs(cat_tuple, tol=2/3600.):
 	matched2 = df2.loc[idx2]
 	ch1_cols = [i+'_1' for i in df1.columns.tolist()]
 	ch2_cols = [i+'_2' for i in df2.columns.tolist()]
-	matched1.columns = ch1_cols	
+	matched1.columns = ch1_cols
 	matched2.columns = ch2_cols
 
 	# matched = np.concatenate([matched1.values, matched2.values], 1)
