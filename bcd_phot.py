@@ -92,24 +92,30 @@ def get_photometry_idl(source_list_path):
 
 		# spawn subprocess to get bcd_phot.pro output for the current image
 		if metadata['rmask']:
-			rmask_dict_path = metadata['rmask_dict_path']
+
+			# transform BCD filename to RMASK filename
 			rmask_key = key.replace('.fits', '_rmask.fits')
-			rmask_path = rmask_dict[key]
-			cmd = 'bcd_phot2'+',"'+bcd_path+'","'+unc_path+'","'+msk_path+'","'+\
-				rmask_path+'",'+tmp_radec_path+'",'+channel
-			if metadata['mask']:
-				cmd += ',/use_mask'
-			if metadata['centroid']:
-				cmd += ',/centroid'
-		else:
-			cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+msk_path+'","'+\
-				tmp_radec_path+'",'+channel
+			rmask_key = rmask_key.replace('_1_', '_2_')
+
+			rmask_path = rmask_dict[rmask_key]
+
+			cmd = 'bcd_phot2'+',"'+bcd_path+'","'+unc_path+'","'+\
+				msk_path+'","'+rmask_path+'","'+tmp_radec_path+'",'+channel
 			if metadata['mask']:
 				cmd += ',/use_mask'
 			if metadata['centroid']:
 				cmd += ',/centroid'
 
-		returncode = subprocess.call([idl,'-quiet','-e',cmd], 
+		else:
+
+			cmd = 'bcd_phot'+',"'+bcd_path+'","'+unc_path+'","'+\
+				msk_path+'","'+tmp_radec_path+'",'+channel
+			if metadata['mask']:
+				cmd += ',/use_mask'
+			if metadata['centroid']:
+				cmd += ',/centroid'
+
+		returncode = subprocess.call([idl,'-quiet','-e',cmd],
 			stderr = subprocess.PIPE, stdout = subprocess.PIPE)
 
 	# read the results of bcd_phot.pro

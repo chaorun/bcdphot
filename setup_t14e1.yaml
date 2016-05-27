@@ -1,8 +1,9 @@
 params: {data_dir: /Users/john/spikes/data,
   out_dir: /Users/john/spikes/bcdphot_out/t14-e1-rmask,
   cbcd: true,
-  rmask: true, # if true, must supply mopex_out_dir
-  mopex_out_dir: /Users/john/spikes/SpiKeS/mopex/t14i1-epoch1,
+  rmask: true, # if true, must supply mopex_out_dir_ch*
+  mopex_out_dir_ch1: /Users/john/spikes/SpiKeS/mopex/t14i1-epoch1,
+  mopex_out_dir_ch2: /Users/john/spikes/SpiKeS/mopex/t14i2-epoch1,
   hdr: false, # if true, must also supply long_cutoff_ch1, long_cutoff_ch2, etc.
   idl_path: /Applications/exelis/idl85/bin/idl,
   max_cov: 12,

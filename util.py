@@ -282,15 +282,18 @@ def setup_output_dirs(setup):
 		# get the maximum distance from input RA/Dec to centroid position [arcsec]
 		max_dist = params['max_dist']
 
+	# this is the name of the output dir for pipeline output and temp files
+	out_dir = params['out_dir'].rstrip('/')
+	if os.path.exists(out_dir):
+		print('output dir exists, skipping setup')
+		return
+	mkdirs(out_dir)
+	print('output directory: '+out_dir)
+
 	# this is the master project directory containing the data, input file,
 	# and subdirectory containing the RA/Dec source list files
 	data_dir = params['data_dir'].rstrip('/')
 	print('data directory: '+data_dir)
-
-	# this is the name of the output dir for pipeline output and temp files
-	out_dir = params['out_dir'].rstrip('/')
-	mkdirs(out_dir)
-	print('output directory: '+out_dir)
 
 	# create a dictionary with BCD filenames as the keys, full paths as values
 	print('creating setup files in output directory...')
@@ -310,9 +313,11 @@ def setup_output_dirs(setup):
 		json.dump(msk_dict, w, indent=' '*4)
 
 	if params['rmask']:
-		mopex_out_dir = params['mopex_out_dir']
+		mopex_out_dir_ch1 = params['mopex_out_dir_ch1']
+		mopex_out_dir_ch2 = params['mopex_out_dir_ch2']
 		# do the same for RMASK files from mopex
-		rmask_paths = list(find_files(mopex_out_dir, '*_rmask.fits'))
+		rmask_paths = list(find_files(mopex_out_dir_ch1, '*_rmask.fits'))
+		rmask_paths += list(find_files(mopex_out_dir_ch2, '*_rmask.fits'))
 		rmask_dict = {i.split('/')[-1]:i for i in rmask_paths}
 		with open(out_dir+'/rmask_dict.json','w') as w:
 			json.dump(rmask_dict, w, indent=' '*4)
@@ -396,7 +401,8 @@ def setup_output_dirs(setup):
 
 			if params['rmask']:
 				metadata['rmask'] = params['rmask']
-				metadata['mopex_out_dir'] = params['mopex_out_dir']
+				metadata['mopex_out_dir_ch1'] = params['mopex_out_dir_ch1']
+				metadata['mopex_out_dir_ch2'] = params['mopex_out_dir_ch2']
 				metadata['rmask_dict_path'] = rmask_dict_path
 
 			if setup['params']['snr_dist_cull']:
