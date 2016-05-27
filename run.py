@@ -20,7 +20,7 @@ from bcd_phot import make_2ch_catalogs
 # instantiate the pool for parallel processing
 ncpus = multiprocessing.cpu_count()
 pool = multiprocessing.Pool(processes=ncpus-1)
-print "using %i CPUs" % ncpus-1
+print "using {} CPUs".format(ncpus-1)
 
 infile = sys.argv[1]
 setup = yaml.load(open(infile))
