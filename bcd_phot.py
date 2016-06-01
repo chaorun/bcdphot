@@ -101,10 +101,10 @@ def get_photometry_idl(source_list_path):
 
 			cmd = 'bcd_phot2'+',"'+bcd_path+'","'+unc_path+'","'+\
 				msk_path+'","'+rmask_path+'","'+tmp_radec_path+'",'+channel
-			if metadata['mask']:
-				cmd += ',/use_mask'
-			if metadata['centroid']:
-				cmd += ',/centroid'
+			# if metadata['mask']:
+			# 	cmd += ',/use_mask'
+			# if metadata['centroid']:
+			# 	cmd += ',/centroid'
 
 		else:
 

@@ -1,4 +1,4 @@
-PRO bcd_phot2,cbcdfile,cbuncfile,maskfile,rmaskfile,radeclist,channel,USE_MASK=use_mask,CENTROID=centroid
+PRO bcd_phot2,cbcdfile,cbuncfile,maskfile,rmaskfile,radeclist,channel
 
 ; DESCRIPTION
 ;	Computes aperture photometry of the sources in radeclist
@@ -16,7 +16,7 @@ PRO bcd_phot2,cbcdfile,cbuncfile,maskfile,rmaskfile,radeclist,channel,USE_MASK=u
 ;bit flags to ignore
 ; ok_bitflags = [4, 16, 128, 20, 132, 144, 148]	;mask bits 2, 4, and 7
 ; ok_bitflags = [4, 16, 20]	;mask bits 2 and 4
-ok_bitflags = [0]	;mask all bitflags
+; ok_bitflags = [0]	;mask all bitflags
 
 ;aper.pro setup
 ; apr = 3				;using BCDs so pixscale is native 1.2"/pix
@@ -51,7 +51,7 @@ unc = readfits(cbuncfile,/silent)
 rmask = readfits(rmaskfile,/silent)
 
 ;read in imask file
-if keyword_set(use_mask) then mask = readfits(maskfile,/silent)
+mask = readfits(maskfile,/silent)
 
 ;calculate photons per digital unit from header values
 GAIN = sxpar(hdr,'GAIN')
@@ -68,15 +68,13 @@ sep = strsplit(radeclist,'/')
 work_dir = strmid(radeclist,0,sep[n_elements(sep)-1])
 good_out = work_dir+'good_list.txt'
 bad_out = work_dir+'bad_list.txt'
+masked_out = work_dir+'masked_list.txt'
 get_lun,good
 get_lun,bad
+get_lun,masked
 openw,good,good_out,width=1200,/append
 openw,bad,bad_out,width=1200,/append
-if keyword_set(use_mask) then begin
-	masked_out = work_dir+'masked_list.txt'
-	get_lun,masked
-	openw,masked,masked_out,width=1200,/append
-endif
+openw,masked,masked_out,width=1200,/append
 
 ;loop through source pixel coordinates and do photometry at that location in image
 for i=0,n_elements(x)-1 do begin
@@ -84,45 +82,25 @@ for i=0,n_elements(x)-1 do begin
 	;check to make sure the pixel coordinates are finite, skip source if not
 	if not finite(x[i]) or not finite(y[i]) then continue
 
-	if keyword_set(centroid) then begin
-		;centroid on x,y
-		box_centroider,img,unc^2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
-	endif else begin
-		x0 = x[i]
-		y0 = y[i]
-	endelse
-
-	ok_src = 0
+	x0 = x[i]
+	y0 = y[i]
 
 	;check for any flagged pixels inside the aperture, skip if so
-	if keyword_set(use_mask) then begin
-		bitflag = badpix_aperture(mask,x0,y0,apr)
-		if bitflag eq 0 then begin
-			ok_src = 1
-		endif else begin
-			for j=0,n_elements(ok_bitflags)-1 do if bitflag eq ok_bitflags[j] then ok_src = 1
-		endelse
-	endif
+	bmask_ok = 0
+	bitflag = badpix_aperture(mask,x0,y0,apr)
+	if bitflag eq 0 then bmask_ok = 1
 
 	;use aper to check for bad pixels in rmask
-	aper,rmask,x0,y0,rmask_aper_sum,rmask_err,sky,skyerr,phpadu,apr,skyrad,badpix,$
-		/flux,/nan,/exact,/silent,readnoise=RONOISE
+	rmask_ok = 0
+	aper,rmask,x0,y0,rmask_aper_sum,rmask_err,sky,skyerr,phpadu,apr,skyrad,badpix,/flux,/nan,/exact,/silent,readnoise=RONOISE
+	if rmask_aper_sum eq 0 then rmask_ok = 1
 
-	if rmask_aper_sum eq 0 then begin
-		ok_src = 1
-	endif else begin
-		if keyword_set(use_mask) then begin
-			bitflag *= -1
-		endif else begin
-			bitflag = -99999
-		endelse
-	endelse
-
-	if not ok_src then begin
+	if not (bmask_ok and rmask_ok) then begin
+		if not bmask_ok and not rmask_ok then bitflag *= -1
 		printf,masked,strtrim(strcompress([string(id[i]),maskfile,$
 			string([x0,y0]),string(bitflag)]),1)
 		continue
-	endif
+	endelse
 
 	;get photometry on centroid
 	aper,img,x0,y0,flux_aper,fluxerr,sky,skyerr,phpadu,apr,skyrad,badpix,$
@@ -154,6 +132,6 @@ endfor
 
 close,good
 close,bad
-if keyword_set(use_mask) then close,masked
+close,masked
 
 END
