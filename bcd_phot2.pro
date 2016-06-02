@@ -1,4 +1,4 @@
-PRO bcd_phot2,cbcdfile,cbuncfile,maskfile,rmaskfile,radeclist,channel
+PRO bcd_phot2,cbcdfile,cbuncfile,bmaskfile,rmaskfile,radeclist,channel
 
 ; DESCRIPTION
 ;	Computes aperture photometry of the sources in radeclist
@@ -47,11 +47,11 @@ img = readfits(cbcdfile,hdr,/silent)
 ;read in uncertainty per pixel
 unc = readfits(cbuncfile,/silent)
 
+;read in imask file
+bmask = readfits(bmaskfile,/silent)
+
 ;read in rmask
 rmask = readfits(rmaskfile,/silent)
-
-;read in imask file
-mask = readfits(maskfile,/silent)
 
 ;calculate photons per digital unit from header values
 GAIN = sxpar(hdr,'GAIN')
@@ -87,7 +87,7 @@ for i=0,n_elements(x)-1 do begin
 
 	;check for any flagged pixels inside the aperture, skip if so
 	bmask_ok = 0
-	bitflag = badpix_aperture(mask,x0,y0,apr)
+	bitflag = badpix_aperture(bmask,x0,y0,apr)
 	if bitflag eq 0 then bmask_ok = 1
 
 	;use aper to check for bad pixels in rmask
@@ -97,10 +97,10 @@ for i=0,n_elements(x)-1 do begin
 
 	if not (bmask_ok and rmask_ok) then begin
 		if not bmask_ok and not rmask_ok then bitflag *= -1
-		printf,masked,strtrim(strcompress([string(id[i]),maskfile,$
+		printf,masked,strtrim(strcompress([string(id[i]),bmaskfile,$
 			string([x0,y0]),string(bitflag)]),1)
 		continue
-	endelse
+	endif
 
 	;get photometry on centroid
 	aper,img,x0,y0,flux_aper,fluxerr,sky,skyerr,phpadu,apr,skyrad,badpix,$

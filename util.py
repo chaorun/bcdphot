@@ -423,3 +423,11 @@ def setup_output_dirs(setup):
 			with open(metadata_path,'w') as w:
 				json.dump(metadata, w, indent=' '*4)
 			print('created: '+metadata_path)
+
+
+def get_flags(bitflag):
+	bits = list(bin(bitflag).split('b')[1])
+	vals = range(len(bits)-1, -1, -1)
+	flags = np.array(vals)[np.array(bits).astype(bool)]
+	flags.sort()
+	return flags.tolist()

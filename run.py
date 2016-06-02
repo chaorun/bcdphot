@@ -57,7 +57,6 @@ print('getting photometry from IDL...')
 filepaths = list(find_files(out_dir, 'source_list.json'))
 pool.map(get_bcd_phot, filepaths)
 
-
 # cull bad individual measurements from the groups of measurements
 # of each source using SNR and proximity cutoffs
 if setup['params']['snr_dist_cull']:
