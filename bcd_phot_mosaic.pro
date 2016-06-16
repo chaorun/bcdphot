@@ -36,7 +36,9 @@ badpix = [0,0]
 ap_cor_ch1 = 1.205			;ch1 aperture correction 2 pix radius, 12-20 pix annulus
 ap_cor_ch2 = 1.221			;ch2 aperture correction 2 pix radius, 12-20 pix annulus
 ;conv_fac = 35.174234		;MJy/sr --> uJy for native 1.2233"/pix
-conv_fac = 8.461933			;MJy/sr --> uJy for mosaic pixels
+;conv_fac = 35.17515109		;MJy/sr --> uJy for 1.22304236283526 by 1.22361484682187
+;conv_fac = 8.461933			;MJy/sr --> uJy for 0.6" mosaic pixels (taken from apex header)
+conv_fac = 8.46159499			;MJy/sr --> uJy for 0.6" mosaic pixels (calculated)
 
 if channel eq 1 then ap_cor = ap_cor_ch1
 if channel eq 2 then ap_cor = ap_cor_ch2
@@ -45,14 +47,29 @@ if channel eq 2 then ap_cor = ap_cor_ch2
 img = readfits(mosaicfile,hdr,/silent)
 
 ;read in uncertainty per pixel
-;unc = readfits(uncfile,/silent)
+ss = strsplit(mosaicfile,'/',/extract)
+basename = strjoin(ss[0:n_elements(ss)-2],'/')
+uncfile = '/'+basename+'/mosaic_unc.fits'
+unc = readfits(uncfile,/silent)
+unc2 = unc^2 		;square the uncertainties for quadrature sum
+
+;read in the coverage map
+ss = strsplit(mosaicfile,'/',/extract)
+basename = strjoin(ss[0:n_elements(ss)-2],'/')
+covfile = '/'+basename+'/mosaic_cov.fits'
+cov = readfits(covfile,/silent)
 
 ;calculate photons per digital unit from header values
-GAIN = sxpar(hdr,'GAIN')
-EXPTIME = sxpar(hdr,'EXPTIME')
-FLUXCONV = sxpar(hdr,'FLUXCONV')
-RONOISE = sxpar(hdr,'RONOISE')
-phpadu = GAIN*EXPTIME/FLUXCONV
+; GAIN = sxpar(hdr,'GAIN')
+; EXPTIME = sxpar(hdr,'EXPTIME')
+; FLUXCONV = sxpar(hdr,'FLUXCONV')
+; RONOISE = sxpar(hdr,'RONOISE')
+; phpadu = GAIN*EXPTIME/FLUXCONV
+RONOISE = 15.0		;per BCD
+phpadu = 306.126	;per BCD
+;use the coverage map to compute the average coverage within each
+;aperture, then adjust the above values appropriately, i.e. the
+;read noise decreases by sqrt(n) but the exposure time increases by n
 
 
 if KEYWORD_SET(sextractor) then begin
@@ -64,7 +81,7 @@ if KEYWORD_SET(sextractor) then begin
 	;convert from sky to pixel coord.
 	adxy,hdr,ra,dec,x,y
 endif else begin
-	hmin = 3
+	hmin = 5
 	fwhm = 4
 	roundlim = [-1.0,1.0]
 	sharplim = [0.2,1.0]
@@ -83,13 +100,10 @@ id = indgen(n_elements(x))
 work_dir = './'
 good_out = work_dir+'good_list.txt'
 bad_out = work_dir+'bad_list.txt'
-masked_out = work_dir+'masked_list.txt'
 get_lun,good
 get_lun,bad
-get_lun,masked
 openw,good,good_out,width=1200
 openw,bad,bad_out,width=1200
-openw,masked,masked_out,width=1200
 
 ;loop through source pixel coordinates and do photometry at that location in image
 for i=0,n_elements(x)-1 do begin
@@ -100,17 +114,28 @@ for i=0,n_elements(x)-1 do begin
 	x0 = x[i]
 	y0 = y[i]
 
+	;get mean coverage per aperture
+	aper,cov,x0,y0,cov_sum,cov_err,cov_sky,cov_skyerr,1,apr,badpix,$
+		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
+	num_pix = 3.1415926 * apr ^ 2
+	mean_cov = cov_sum / num_pix
+
 	;get photometry on centroid
-	aper,img,x0,y0,flux_aper,fluxerr,sky,skyerr,phpadu,apr,skyrad,badpix,$
-		/flux,/nan,/exact,/silent,readnoise=RONOISE
+	aper,img,x0,y0,flux_aper,fluxerr,sky,skyerr,phpadu*mean_cov,apr,$
+		skyrad,badpix,/flux,/nan,/exact,/silent,readnoise=RONOISE/sqrt(mean_cov)
+
+	;get uncertainties from unc mosaic
+	aper,unc2,x0,y0,unc_sum,unc_err,unc_sky,unc_skyerr,1,apr,badpix,$
+		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
 
 	;convert flux and unc from MJy/sr to Jy and apply aperture correction
-	flux_jy = (flux_aper * ap_cor * conv_fac) * 1e-6
-	unc_jy = (fluxerr * conv_fac) * 1e-6		; unc does not get aperture correction
+	flux_mjy = (flux_aper * ap_cor * conv_fac) * 1e-3
+	unc_mjy = (fluxerr * conv_fac) * 1e-3		; unc does not get aperture correction
+	unc_mjy2 = (sqrt(unc_sum) * conv_fac) * 1e-3
 
-	;apply pixel phase correction
-	flux_mjy = flux_jy * 1e3
-	unc_mjy = unc_jy * 1e3
+	; flux_mjy = flux_jy * 1e3
+	; unc_mjy = unc_jy * 1e3
+	; unc_mjy2 = unc_jy2 * 1e3
 
 	;calculate RA/Dec of centroids
 	xyad,hdr,x0,y0,ra0,dec0
@@ -118,7 +143,7 @@ for i=0,n_elements(x)-1 do begin
 	;print the data
 	if finite(flux_aper) eq 1 then begin
 		printf,good,strtrim(strcompress([string(id[i]),$
-			string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy])]),1)
+			string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy,unc_mjy2])]),1)
 	endif else begin
 		printf,bad,strtrim(strcompress([string(id[i]),$
 			string([ra[i],dec[i],ra0,dec0,x0,y0])]),1)
@@ -128,6 +153,5 @@ endfor
 
 close,good
 close,bad
-close,masked
 
 END
