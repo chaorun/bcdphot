@@ -1,34 +1,16 @@
 PRO bcd_phot_mosaic,mosaicfile,channel,sextractor=SEXTRACTOR
 
-; DESCRIPTION
-;	Computes aperture photometry of the sources in radeclist
-;	on the image in cbcdfile. Applies pixel phase correction but
-;	not array location correction. Converts output to Jy and
-;	writes RA, Dec, x, y, flux, uncertainty, and uncorrected flux
-;	to disk, as well as details of any sources for which aper.pro
-;	returned a NaN -- either due to the source being off the array
-;	or the presence of bad pixels.
 ; AUTHOR
 ;	John Livingston
 ; DATE
-;	05/26/16
-
-;bit flags to ignore
-; ok_bitflags = [4, 16, 128, 20, 132, 144, 148]	;mask bits 2, 4, and 7
-; ok_bitflags = [4, 16, 20]	;mask bits 2 and 4
-; ok_bitflags = [0]	;mask all bitflags
+;	06/16/16
 
 ;aper.pro setup
-; apr = 3				;using BCDs so pixscale is native 1.2"/pix
 ; apr = 2				;using BCDs so pixscale is native 1.2"/pix
 apr = 4					;mosaic pixscale is 0.6", so this is a 2.4" aperture
 ; skyrad = [12,20]
 skyrad = [24,40]
 badpix = [0,0]
-
-;aperture photometry parameter string for pixel_phase_correct_gauss
-; ap_par = '3_12_20'
-; ap_par = '2_12_20'
 
 ;conversion factors
 ; ap_cor_ch1 = 1.112			;ch1 aperture correction 3 pix radius, 12-20 pix annulus
@@ -81,7 +63,7 @@ if KEYWORD_SET(sextractor) then begin
 	;convert from sky to pixel coord.
 	adxy,hdr,ra,dec,x,y
 endif else begin
-	hmin = 5
+	hmin = 3
 	fwhm = 4
 	roundlim = [-1.0,1.0]
 	sharplim = [0.2,1.0]
@@ -95,11 +77,11 @@ endelse
 id = indgen(n_elements(x))
 
 ;setup for writing results to disk
-; sep = strsplit(radeclist,'/')
-; work_dir = strmid(radeclist,0,sep[n_elements(sep)-1])
-work_dir = './'
-good_out = work_dir+'good_list.txt'
-bad_out = work_dir+'bad_list.txt'
+ss = strsplit(mosaicfile,'/',/extract)
+basename = strjoin(ss[0:n_elements(ss)-2],'/')
+work_dir = '/'+basename+'/'
+good_out = work_dir+'mosaic_phot_good.txt'
+bad_out = work_dir+'mosaic_phot_bad.txt'
 get_lun,good
 get_lun,bad
 openw,good,good_out,width=1200
@@ -128,14 +110,18 @@ for i=0,n_elements(x)-1 do begin
 	aper,unc2,x0,y0,unc_sum,unc_err,unc_sky,unc_skyerr,1,apr,badpix,$
 		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
 
+	aper,unc2,x0,y0,unc_sum2,unc_err,unc_sky,unc_skyerr,1,skyrad[0],badpix,$
+		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
+
+	aper,unc2,x0,y0,unc_sum3,unc_err,unc_sky,unc_skyerr,1,skyrad[1],badpix,$
+		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
+
+	sigma_tot = sqrt(unc_sum + unc_sum3 - unc_sum2)
+
 	;convert flux and unc from MJy/sr to Jy and apply aperture correction
 	flux_mjy = (flux_aper * ap_cor * conv_fac) * 1e-3
 	unc_mjy = (fluxerr * conv_fac) * 1e-3		; unc does not get aperture correction
-	unc_mjy2 = (sqrt(unc_sum) * conv_fac) * 1e-3
-
-	; flux_mjy = flux_jy * 1e3
-	; unc_mjy = unc_jy * 1e3
-	; unc_mjy2 = unc_jy2 * 1e3
+	unc_mjy2 = (sigma_tot * conv_fac) * 1e-3
 
 	;calculate RA/Dec of centroids
 	xyad,hdr,x0,y0,ra0,dec0
