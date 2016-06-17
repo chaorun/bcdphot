@@ -1,4 +1,4 @@
-PRO bcd_phot_mosaic,mosaicfile,channel,sextractor=SEXTRACTOR
+PRO bcd_phot_mosaic,mosaicfile,channel,outdir,sex=SEX
 
 ; AUTHOR
 ;	John Livingston
@@ -54,7 +54,7 @@ phpadu = 306.126	;per BCD
 ;read noise decreases by sqrt(n) but the exposure time increases by n
 
 
-if KEYWORD_SET(sextractor) then begin
+if KEYWORD_SET(sex) then begin
 	ss = strsplit(mosaicfile,'/',/extract)
 	basename = strjoin(ss[0:n_elements(ss)-2],'/')
 	radeclist = '/'+basename+'/radec.txt'
@@ -74,14 +74,15 @@ endif else begin
 	;create ID
 endelse
 
-id = indgen(n_elements(x))
+id = lindgen(n_elements(x))
 
 ;setup for writing results to disk
-ss = strsplit(mosaicfile,'/',/extract)
-basename = strjoin(ss[0:n_elements(ss)-2],'/')
-work_dir = '/'+basename+'/'
-good_out = work_dir+'mosaic_phot_good.txt'
-bad_out = work_dir+'mosaic_phot_bad.txt'
+;ss = strsplit(mosaicfile,'/',/extract)
+;basename = strjoin(ss[0:n_elements(ss)-2],'/')
+;work_dir = '/'+basename+'/'
+work_dir = outdir
+good_out = work_dir+'/mosaic_phot_good.txt'
+bad_out = work_dir+'/mosaic_phot_bad.txt'
 get_lun,good
 get_lun,bad
 openw,good,good_out,width=1200
@@ -110,10 +111,10 @@ for i=0,n_elements(x)-1 do begin
 	aper,unc2,x0,y0,unc_sum,unc_err,unc_sky,unc_skyerr,1,apr,badpix,$
 		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
 
-	aper,unc2,x0,y0,unc_sum2,unc_err,unc_sky,unc_skyerr,1,skyrad[0],badpix,$
+	aper,unc2,x0,y0,unc_sum2,unc_err2,unc_sky2,unc_skyerr2,1,skyrad[0],badpix,$
 		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
 
-	aper,unc2,x0,y0,unc_sum3,unc_err,unc_sky,unc_skyerr,1,skyrad[1],badpix,$
+	aper,unc2,x0,y0,unc_sum3,unc_err3,unc_sky3,unc_skyerr3,1,skyrad[1],badpix,$
 		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
 
 	sigma_tot = sqrt(unc_sum + unc_sum3 - unc_sum2)
