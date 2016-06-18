@@ -1,16 +1,16 @@
-pro box_centroider, in_image, sigma2, xmax, ymax, boxwidth, backboxwidth, boxborder, $
+pro box_centroid, in_image, sigma2, xmax, ymax, boxwidth, backboxwidth, boxborder, $
                     x0, y0, f0, b, xs, ys, fs, bs, c, cb, np, MMM=mmm
 ;+
 ; NAME:
 ;    BOX_CENTROIDER
-; 
+;
 ; PURPOSE:
 ;    Calculates centroids for a source using a simple 1st moment box centroider
-; 
+;
 ; INPUTS:
-;    IN_IMAGE: 2d float/double array containing input image, input image is presumed to 
+;    IN_IMAGE: 2d float/double array containing input image, input image is presumed to
 ;           be have bad pixels NaNed out
-;    SIGMA2: 2d float/double array containing estimate of square of per pixel image 
+;    SIGMA2: 2d float/double array containing estimate of square of per pixel image
 ;            uncertainty
 ;    XMAX: float/double scalar containing x position of peak pixel to centroid around
 ;    YMAX: float/double scalar containing y position of peak pixel to centroid around
@@ -35,11 +35,11 @@ pro box_centroider, in_image, sigma2, xmax, ymax, boxwidth, backboxwidth, boxbor
 ;    NP: fixed scalar number of noise pixels
 ;
 ; ALGORITHM:
-;    
+;
 ; HISTORY:
 ;    Recoding from get_centroids_nf procedure 26 May 2010 SJC
 ;    Revised input so that image is not directly operated on 24 Jan 2011 SJC
-;    
+;
 ;-
 
 ; Set sigma clipping threshold
@@ -52,12 +52,12 @@ pro box_centroider, in_image, sigma2, xmax, ymax, boxwidth, backboxwidth, boxbor
 	sz = size(image)
 	nx = sz[1]
 	ny = sz[2]
-		
-; Arrays holding x and y coordinates of each pixel -- allow arbitrary sized 
+
+; Arrays holding x and y coordinates of each pixel -- allow arbitrary sized
 ; images
 	xx = findgen(nx) # replicate(1.0, ny)
 	yy = replicate(1.0, nx) # findgen(ny)
-	
+
 ; Set box limits
 	xa = xmax-boxwidth > 0
 	xb = xmax+boxwidth < (nx-1)
@@ -88,12 +88,12 @@ pro box_centroider, in_image, sigma2, xmax, ymax, boxwidth, backboxwidth, boxbor
 
 ; remove background - median of non box region
 	bptr = where(mask eq -1 and image eq image, bcount)
-	if (bcount gt 0) then begin 
+	if (bcount gt 0) then begin
 		if (keyword_set(MMM)) then begin
 			mmm, image[bptr], back, bsig
 			bsig = bsig * bsig
 		endif else begin
-			back = median(image[bptr]) 
+			back = median(image[bptr])
 ; One pass of outlier rejection for the background, could use mmm as well
 			bmom = moment(image[bptr])
 			bsig = bmom[1]
@@ -125,13 +125,13 @@ pro box_centroider, in_image, sigma2, xmax, ymax, boxwidth, backboxwidth, boxbor
 	fluxsum2 = fluxsum * fluxsum
 	x0 = total(xx[gptr] * float(image[gptr])) / fluxsum
 	y0 = total(yy[gptr] * float(image[gptr])) / fluxsum
-	
-; Use summed flux as measure of total flux and calculate noise pixels		
+
+; Use summed flux as measure of total flux and calculate noise pixels
 	np = flux2sum / fluxsum
 ; Number of pixels in source and background regions
 	c = float(gcount)
 	cb = float(bcount)
-	
+
 ; If a bad pixel exists in the source aperture return a flux of NaN.
 	xptr = where(mask eq 1 and image ne image, xcount)
 	if (xcount gt 0) then f = !VALUES.D_NAN else f = fluxsum

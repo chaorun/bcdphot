@@ -1,4 +1,4 @@
-PRO bcd_phot_mosaic,mosaicfile,channel,outdir,sex=SEX
+PRO bcd_phot_mosaic,mosaicfile,channel,outdir,sex=SEX,centroid=CENTROID,dumppos=DUMPPOS
 
 ; AUTHOR
 ;	John Livingston
@@ -64,7 +64,7 @@ if KEYWORD_SET(sex) then begin
 	adxy,hdr,ra,dec,x,y
 endif else begin
 	hmin = 3
-	fwhm = 4
+	fwhm = 3.33333
 	roundlim = [-1.0,1.0]
 	sharplim = [0.2,1.0]
 	;find sources in mosaic image
@@ -77,68 +77,99 @@ endelse
 id = lindgen(n_elements(x))
 
 ;setup for writing results to disk
-;ss = strsplit(mosaicfile,'/',/extract)
-;basename = strjoin(ss[0:n_elements(ss)-2],'/')
-;work_dir = '/'+basename+'/'
 work_dir = outdir
-good_out = work_dir+'/mosaic_phot_good.txt'
-bad_out = work_dir+'/mosaic_phot_bad.txt'
-get_lun,good
-get_lun,bad
-openw,good,good_out,width=1200
-openw,bad,bad_out,width=1200
 
-;loop through source pixel coordinates and do photometry at that location in image
-for i=0,n_elements(x)-1 do begin
+if KEYWORD_SET(dumppos) then begin
+	pos_out = work_dir+'/radec.txt'
+	get_lun,pos
+	openw,pos,pos_out
+	for i=0,n_elements(x)-1 do begin
 
-	;check to make sure the pixel coordinates are finite, skip source if not
-	if not finite(x[i]) or not finite(y[i]) then continue
+		if KEYWORD_SET(centroid) then begin
+			; box_centroid,img,unc2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
+			gcntrd,img,x[i],y[i],x0,y0,3.33333,/silent
+			; cntrd,img,x[i],y[i],x0,y0,3.33333,/silent
+		endif else begin
+			x0 = x[i]
+			y0 = y[i]
+		endelse
 
-	x0 = x[i]
-	y0 = y[i]
+		xyad,hdr,x0,y0,ra0,dec0
+		printf,pos,strtrim(strcompress(string([ra0,dec0])))
 
-	;get mean coverage per aperture
-	aper,cov,x0,y0,cov_sum,cov_err,cov_sky,cov_skyerr,1,apr,badpix,$
-		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
-	num_pix = 3.1415926 * apr ^ 2
-	mean_cov = cov_sum / num_pix
+	endfor
+	close,pos
+endif else begin
 
-	;get photometry on centroid
-	aper,img,x0,y0,flux_aper,fluxerr,sky,skyerr,phpadu*mean_cov,apr,$
-		skyrad,badpix,/flux,/nan,/exact,/silent,readnoise=RONOISE/sqrt(mean_cov)
+	good_out = work_dir+'/mosaic_phot_good.txt'
+	bad_out = work_dir+'/mosaic_phot_bad.txt'
+	get_lun,good
+	get_lun,bad
+	openw,good,good_out,width=1200
+	openw,bad,bad_out,width=1200
 
-	;get uncertainties from unc mosaic
-	aper,unc2,x0,y0,unc_sum,unc_err,unc_sky,unc_skyerr,1,apr,badpix,$
-		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
+	;loop through source pixel coordinates and do photometry at that location in image
+	for i=0,n_elements(x)-1 do begin
 
-	aper,unc2,x0,y0,unc_sum2,unc_err2,unc_sky2,unc_skyerr2,1,skyrad[0],badpix,$
-		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
+		;check to make sure the pixel coordinates are finite, skip source if not
+		if not finite(x[i]) or not finite(y[i]) then continue
 
-	aper,unc2,x0,y0,unc_sum3,unc_err3,unc_sky3,unc_skyerr3,1,skyrad[1],badpix,$
-		/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
+		if KEYWORD_SET(centroid) then begin
+			;centroid on x,y
+			; box_centroid,img,unc2,x[i],y[i],3,6,3,x0,y0,f0,b,xs,ys,fs,bs,c,cb,np
+			gcntrd,img,x[i],y[i],x0,y0,3.33333,/silent
+			; cntrd,img,x[i],y[i],x0,y0,3.33333,/silent
+		endif else begin
+			x0 = x[i]
+			y0 = y[i]
+		endelse
 
-	sigma_tot = sqrt(unc_sum + unc_sum3 - unc_sum2)
+		;get mean coverage per aperture
+		aper,cov,x0,y0,cov_sum,cov_err,cov_sky,cov_skyerr,1,apr,badpix,$
+			/flux,/nan,/exact,/silent,readnoise=0,setskyval=0,/meanback
+		num_pix = 3.1415926 * apr ^ 2
+		mean_cov = cov_sum / num_pix
 
-	;convert flux and unc from MJy/sr to Jy and apply aperture correction
-	flux_mjy = (flux_aper * ap_cor * conv_fac) * 1e-3
-	unc_mjy = (fluxerr * conv_fac) * 1e-3		; unc does not get aperture correction
-	unc_mjy2 = (sigma_tot * conv_fac) * 1e-3
+		;get photometry on centroid
+		aper,img,x0,y0,flux_aper,fluxerr,sky,skyerr,phpadu*mean_cov,apr,$
+			skyrad,badpix,/flux,/nan,/exact,/silent,readnoise=RONOISE/sqrt(mean_cov)
 
-	;calculate RA/Dec of centroids
-	xyad,hdr,x0,y0,ra0,dec0
+		;get uncertainties from unc mosaic
+		aper,unc2,x0,y0,unc_sum,unc_err,unc_sky,unc_skyerr,1,apr,badpix,$
+			/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
 
-	;print the data
-	if finite(flux_aper) eq 1 then begin
-		printf,good,strtrim(strcompress([string(id[i]),$
-			string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy,unc_mjy2])]),1)
-	endif else begin
-		printf,bad,strtrim(strcompress([string(id[i]),$
-			string([ra[i],dec[i],ra0,dec0,x0,y0])]),1)
-	endelse
+		aper,unc2,x0,y0,unc_sum2,unc_err2,unc_sky2,unc_skyerr2,1,skyrad[0],badpix,$
+			/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
 
-endfor
+		aper,unc2,x0,y0,unc_sum3,unc_err3,unc_sky3,unc_skyerr3,1,skyrad[1],badpix,$
+			/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
 
-close,good
-close,bad
+		sky_area = 3.1415926 * (skyrad[1]^2 - skyrad[0]^2)
+		sky_sum = unc_sum3 - unc_sum2
+		sigma_tot = sqrt(unc_sum + sky_sum/sky_area)
+
+		;convert flux and unc from MJy/sr to Jy and apply aperture correction
+		flux_mjy = (flux_aper * ap_cor * conv_fac) * 1e-3
+		unc_mjy = (fluxerr * conv_fac) * 1e-3		; unc does not get aperture correction
+		unc_mjy2 = (sigma_tot * conv_fac) * 1e-3
+
+		;calculate RA/Dec of centroids
+		xyad,hdr,x0,y0,ra0,dec0
+
+		;print the data
+		if finite(flux_aper) eq 1 then begin
+			printf,good,strtrim(strcompress([string(id[i]),$
+				string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy,unc_mjy2])]),1)
+		endif else begin
+			printf,bad,strtrim(strcompress([string(id[i]),$
+				string([ra[i],dec[i],ra0,dec0,x0,y0])]),1)
+		endelse
+
+	endfor
+
+	close,good
+	close,bad
+
+endelse
 
 END
