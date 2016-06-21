@@ -25,5 +25,5 @@ regions:
   - '50111744'
   - '50116864'
   radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
-  - {filepath: /Users/john/spikes/mopex/tile14-epoch2/ch1/Combine-mosaic/radec.txt, channel: 1}
-  - {filepath: /Users/john/spikes/mopex/tile14-epoch2/ch2/Combine-mosaic/radec.txt, channel: 2}
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t14i1-epoch2/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t14i2-epoch2/Combine-mosaic/radec.txt, channel: 2}
