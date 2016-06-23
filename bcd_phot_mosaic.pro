@@ -6,21 +6,17 @@ PRO bcd_phot_mosaic,mosaicfile,channel,outdir,sex=SEX,centroid=CENTROID,dumppos=
 ;	06/16/16
 
 ;aper.pro setup
-; apr = 2				;using BCDs so pixscale is native 1.2"/pix
-apr = 4					;mosaic pixscale is 0.6", so this is a 2.4" aperture
-; skyrad = [12,20]
+apr = [4, 6, 8, 10, 12]		;mosaic pixscale is 0.6", so this is a 2.4" aperture
 skyrad = [24,40]
 badpix = [0,0]
 
 ;conversion factors
-; ap_cor_ch1 = 1.112			;ch1 aperture correction 3 pix radius, 12-20 pix annulus
-; ap_cor_ch2 = 1.113			;ch2 aperture correction 3 pix radius, 12-20 pix annulus
-ap_cor_ch1 = 1.205			;ch1 aperture correction 2 pix radius, 12-20 pix annulus
-ap_cor_ch2 = 1.221			;ch2 aperture correction 2 pix radius, 12-20 pix annulus
+ap_cor_ch1 = [1.208, 1.112, 1.070, 1.047, 1.032]
+ap_cor_ch2 = [1.220, 1.112, 1.080, 1.048, 1.036]
 ;conv_fac = 35.174234		;MJy/sr --> uJy for native 1.2233"/pix
 ;conv_fac = 35.17515109		;MJy/sr --> uJy for 1.22304236283526 by 1.22361484682187
-;conv_fac = 8.461933			;MJy/sr --> uJy for 0.6" mosaic pixels (taken from apex header)
-conv_fac = 8.46159499			;MJy/sr --> uJy for 0.6" mosaic pixels (calculated)
+;conv_fac = 8.461933		;MJy/sr --> uJy for 0.6" mosaic pixels (taken from apex header)
+conv_fac = 8.46159499		;MJy/sr --> uJy for 0.6" mosaic pixels (calculated)
 
 if channel eq 1 then ap_cor = ap_cor_ch1
 if channel eq 2 then ap_cor = ap_cor_ch2
@@ -149,9 +145,14 @@ endif else begin
 		sigma_tot = sqrt(unc_sum + sky_sum/sky_area)
 
 		;convert flux and unc from MJy/sr to Jy and apply aperture correction
-		flux_mjy = (flux_aper * ap_cor * conv_fac) * 1e-3
+		flux_mjy = (flux_aper[0] * ap_cor[0] * conv_fac) * 1e-3
 		unc_mjy = (fluxerr * conv_fac) * 1e-3		; unc does not get aperture correction
 		unc_mjy2 = (sigma_tot * conv_fac) * 1e-3
+
+		;compute quality metric
+		sum = 0
+		for j=0,3 do sum += flux_aper[j] * ap_cor[j] / flux_aper[j+1] * ap_cor[j+1]
+		quality = sum/4.
 
 		;calculate RA/Dec of centroids
 		xyad,hdr,x0,y0,ra0,dec0
@@ -159,7 +160,7 @@ endif else begin
 		;print the data
 		if finite(flux_aper) eq 1 then begin
 			printf,good,strtrim(strcompress([string(id[i]),$
-				string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy,unc_mjy2])]),1)
+				string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy,unc_mjy2,quality])]),1)
 		endif else begin
 			printf,bad,strtrim(strcompress([string(id[i]),$
 				string([ra[i],dec[i],ra0,dec0,x0,y0])]),1)
