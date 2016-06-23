@@ -161,7 +161,7 @@ endif else begin
 		xyad,hdr,x0,y0,ra0,dec0
 
 		;print the data
-		if finite(flux_aper) eq 1 then begin
+		if finite(flux_mjy) eq 1 then begin
 			printf,good,strtrim(strcompress([string(id[i]),$
 				string([ra0,dec0,x0,y0,flux_mjy,unc_mjy,unc_mjy2,quality])]),1)
 		endif else begin
