@@ -124,9 +124,9 @@ endif else begin
 		endelse
 
 		;get mean coverage per aperture
-		aper,cov,x0,y0,cov_sum,cov_err,cov_sky,cov_skyerr,1,apr,badpix,$
+		aper,cov,x0,y0,cov_sum,cov_err,cov_sky,cov_skyerr,1,apr[0],badpix,$
 			/flux,/nan,/exact,/silent,readnoise=0,setskyval=0,/meanback
-		num_pix = 3.1415926 * apr ^ 2
+		num_pix = 3.1415926 * apr[0] ^ 2
 		mean_cov = cov_sum / num_pix
 
 		;get photometry on centroid
