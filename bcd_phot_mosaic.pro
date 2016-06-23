@@ -5,6 +5,8 @@ PRO bcd_phot_mosaic,mosaicfile,channel,outdir,sex=SEX,centroid=CENTROID,dumppos=
 ; DATE
 ;	06/16/16
 
+file_mkdir,outdir
+
 ;aper.pro setup
 apr = [4, 6, 8, 10, 12]		;mosaic pixscale is 0.6", so this is a 2.4" aperture
 skyrad = [24,40]
@@ -49,7 +51,6 @@ phpadu = 306.126	;per BCD
 ;aperture, then adjust the above values appropriately, i.e. the
 ;read noise decreases by sqrt(n) but the exposure time increases by n
 
-
 if KEYWORD_SET(sex) then begin
 	ss = strsplit(mosaicfile,'/',/extract)
 	basename = strjoin(ss[0:n_elements(ss)-2],'/')
@@ -73,10 +74,9 @@ endelse
 id = lindgen(n_elements(x))
 
 ;setup for writing results to disk
-work_dir = outdir
 
 if KEYWORD_SET(dumppos) then begin
-	pos_out = work_dir+'/radec.txt'
+	pos_out = outdir+'/radec.txt'
 	get_lun,pos
 	openw,pos,pos_out
 	for i=0,n_elements(x)-1 do begin
@@ -97,12 +97,15 @@ if KEYWORD_SET(dumppos) then begin
 	close,pos
 endif else begin
 
-	good_out = work_dir+'/mosaic_phot_good.txt'
-	bad_out = work_dir+'/mosaic_phot_bad.txt'
+	good_out = outdir+'/mosaic_phot_good.txt'
+	bad_out = outdir+'/mosaic_phot_bad.txt'
 	get_lun,good
 	get_lun,bad
 	openw,good,good_out,width=1200
 	openw,bad,bad_out,width=1200
+
+	printf,good,"ra dec x y flux_mjy unc_mjy_aper unc_mjy_cbunc quality"
+	printf,bad,"ra dec x y"
 
 	;loop through source pixel coordinates and do photometry at that location in image
 	for i=0,n_elements(x)-1 do begin
@@ -160,10 +163,10 @@ endif else begin
 		;print the data
 		if finite(flux_aper) eq 1 then begin
 			printf,good,strtrim(strcompress([string(id[i]),$
-				string([ra[i],dec[i],ra0,dec0,x0,y0,flux_mjy,unc_mjy,unc_mjy2,quality])]),1)
+				string([ra0,dec0,x0,y0,flux_mjy,unc_mjy,unc_mjy2,quality])]),1)
 		endif else begin
 			printf,bad,strtrim(strcompress([string(id[i]),$
-				string([ra[i],dec[i],ra0,dec0,x0,y0])]),1)
+				string([ra0,dec0,x0,y0])]),1)
 		endelse
 
 	endfor
