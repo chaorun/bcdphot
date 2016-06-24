@@ -104,8 +104,8 @@ endif else begin
 	openw,good,good_out,width=1200
 	openw,bad,bad_out,width=1200
 
-	printf,good,"ra dec x y flux_mjy unc_mjy_aper unc_mjy_cbunc quality"
-	printf,bad,"ra dec x y"
+	printf,good,"id ra dec x y flux_mjy unc_mjy_aper unc_mjy_cbunc quality"
+	printf,bad,"id ra dec x y"
 
 	;loop through source pixel coordinates and do photometry at that location in image
 	for i=0,n_elements(x)-1 do begin
@@ -134,7 +134,7 @@ endif else begin
 			skyrad,badpix,/flux,/nan,/exact,/silent,readnoise=RONOISE/sqrt(mean_cov)
 
 		;get uncertainties from unc mosaic
-		aper,unc2,x0,y0,unc_sum,unc_err,unc_sky,unc_skyerr,1,apr,badpix,$
+		aper,unc2,x0,y0,unc_sum,unc_err,unc_sky,unc_skyerr,1,apr[0],badpix,$
 			/flux,/nan,/exact,/silent,readnoise=0,setskyval=0
 
 		aper,unc2,x0,y0,unc_sum2,unc_err2,unc_sky2,unc_skyerr2,1,skyrad[0],badpix,$
@@ -149,7 +149,7 @@ endif else begin
 
 		;convert flux and unc from MJy/sr to Jy and apply aperture correction
 		flux_mjy = (flux_aper[0] * ap_cor[0] * conv_fac) * 1e-3
-		unc_mjy = (fluxerr * conv_fac) * 1e-3		; unc does not get aperture correction
+		unc_mjy = (fluxerr[0] * conv_fac) * 1e-3		; unc does not get aperture correction
 		unc_mjy2 = (sigma_tot * conv_fac) * 1e-3
 
 		;compute quality metric
