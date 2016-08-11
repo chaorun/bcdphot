@@ -326,11 +326,9 @@ def setup_output_dirs(setup):
         json.dump(msk_dict, w, indent=' '*4)
 
     if params['rmask']:
-        mopex_out_dir_ch1 = params['mopex_out_dir_ch1']
-        mopex_out_dir_ch2 = params['mopex_out_dir_ch2']
+        mopex_out_dir = params['mopex_out_dir']
         # do the same for RMASK files from mopex
-        rmask_paths = list(find_files(mopex_out_dir_ch1, '*_rmask.fits'))
-        rmask_paths += list(find_files(mopex_out_dir_ch2, '*_rmask.fits'))
+        rmask_paths = list(find_files(mopex_out_dir, '*_rmask.fits'))
         rmask_dict = {i.split('/')[-1]:i for i in rmask_paths}
         with open(out_dir+'/rmask_dict.json','w') as w:
             json.dump(rmask_dict, w, indent=' '*4)
@@ -414,8 +412,7 @@ def setup_output_dirs(setup):
 
             if params['rmask']:
                 metadata['rmask'] = params['rmask']
-                metadata['mopex_out_dir_ch1'] = params['mopex_out_dir_ch1']
-                metadata['mopex_out_dir_ch2'] = params['mopex_out_dir_ch2']
+                metadata['mopex_out_dir'] = params['mopex_out_dir']
                 metadata['rmask_dict_path'] = rmask_dict_path
 
             if setup['params']['snr_dist_cull']:
