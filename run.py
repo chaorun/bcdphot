@@ -5,6 +5,7 @@ import sys
 import multiprocessing
 import simplejson as json
 import yaml
+import time
 from util import find_files, setup_output_dirs
 from bcd_list import get_bcd_list
 from bcd_list import map_bcd_sources
@@ -23,6 +24,14 @@ pool = multiprocessing.Pool(processes=ncpus-1)
 print "using {} CPUs".format(ncpus-1)
 
 infile = sys.argv[1]
+
+name = os.path.basename(infile)
+logname = name.replace('.yaml', '.log')
+with open(logname, 'w') as w:
+	w.write(time.asctime() + ' STARTED\n')
+
+tick = time.time()
+
 setup = yaml.load(open(infile))
 print('reading input file: '+infile)
 
@@ -112,3 +121,7 @@ else:
 	filepaths_ch1 = list(find_files(out_dir, '*_1_catalog_sigclip.txt'))
 	filepaths_ch2 = list(find_files(out_dir, '*_2_catalog_sigclip.txt'))
 	pool.map(make_2ch_catalogs, zip(filepaths_ch1, filepaths_ch2))
+
+with open(logname, 'a') as w:
+	w.write(time.asctime() + ' FINISHED\n')
+	w.write('Elapsed time: {}'.format(time.time()-tick))
