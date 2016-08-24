@@ -1,0 +1,58 @@
+params: {data_dir: /Volumes/OSX10.6/Users/vg/SpiKeS,
+  out_dir: /Users/john/spikes/bcdphot_out/t020304,
+  cbcd: true,
+  rmask: true, # if true, must supply mopex_out_dir
+  mopex_out_dir: /Users/john/spikes/SpiKeS/mopex,
+  hdr: false, # if true, must also supply long_cutoff_ch1, long_cutoff_ch2, etc.
+  idl_path: /Applications/exelis/idl85/bin/idl,
+  max_cov: 12,
+  mask: true,
+  snr_dist_cull: false, # if true, must also supply min_snr and max_dist values
+  sigma_clip: 3,
+  centroid: false}
+regions:
+
+- name: 'tile02'
+  aors:
+  - '50050816'
+  - '50051072'
+  - '50056960'
+  - '50058752'
+  - '50061824'
+  - '50062592'
+  - '50063616'
+  - '50066432'
+  - '50066688'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t02i1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t02i2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile03'
+  aors:
+  - '50050048'
+  - '50051840'
+  - '50052096'
+  - '50052608'
+  - '50054656'
+  - '50056192'
+  - '50057216'
+  - '50057728'
+  - '50057984'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t03i1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t03i2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile04'
+  aors:
+  - '50050560'
+  - '50052352'
+  - '50053888'
+  - '50062848'
+  - '50064384'
+  - '50064640'
+  - '50064896'
+  - '50069760'
+  - '50070016'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t04i1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t04i2/Combine-mosaic/radec.txt, channel: 2}

@@ -1,0 +1,73 @@
+params: {data_dir: /Volumes/OSX10.6/Users/vg/SpiKeS,
+  out_dir: /Users/john/spikes/bcdphot_out/t06070809,
+  cbcd: true,
+  rmask: true, # if true, must supply mopex_out_dir
+  mopex_out_dir: /Users/john/spikes/SpiKeS/mopex,
+  hdr: false, # if true, must also supply long_cutoff_ch1, long_cutoff_ch2, etc.
+  idl_path: /Applications/exelis/idl85/bin/idl,
+  max_cov: 12,
+  mask: true,
+  snr_dist_cull: false, # if true, must also supply min_snr and max_dist values
+  sigma_clip: 3,
+  centroid: false}
+regions:
+
+- name: 'tile06'
+  aors:
+  - '50063360'
+  - '50063872'
+  - '50064128'
+  - '50065408'
+  - '50065664'
+  - '50067712'
+  - '50067968'
+  - '50070528'
+  - '50071552'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t06i1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t06i2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile07'
+  aors:
+  - '50049792'
+  - '50050304'
+  - '50051584'
+  - '50053632'
+  - '50065152'
+  - '50067456'
+  - '50068480'
+  - '50072320'
+  - '50072576'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t07i1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t07i2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile08'
+  aors:
+  - '50059008'
+  - '50059264'
+  - '50059520'
+  - '50059776'
+  - '50060032'
+  - '50060800'
+  - '50062080'
+  - '50065920'
+  - '50066176'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t08i1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t08i2/Combine-mosaic/radec.txt, channel: 2}
+
+- name: 'tile09'
+  aors:
+  - '50051328'
+  - '50053120'
+  - '50054144'
+  - '50056704'
+  - '50058240'
+  - '50068736'
+  - '50068992'
+  - '50071808'
+  - '50072064'
+  radec: # if hdr=true, these dicts need to also have an hdr='long' or 'short' value
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t09i1/Combine-mosaic/radec.txt, channel: 1}
+  - {filepath: /Users/john/spikes/SpiKeS/mopex/t09i2/Combine-mosaic/radec.txt, channel: 2}
