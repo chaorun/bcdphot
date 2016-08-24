@@ -45,8 +45,15 @@ cov = readfits(covfile,/silent)
 ; FLUXCONV = sxpar(hdr,'FLUXCONV')
 ; RONOISE = sxpar(hdr,'RONOISE')
 ; phpadu = GAIN*EXPTIME/FLUXCONV
-RONOISE = 15.0		;per BCD
-phpadu = 306.126	;per BCD
+if channel eq 1 then begin
+	RONOISE = 15.0		;per BCD
+	phpadu = 306.126	;per BCD
+endif
+if channel eq 2 then begin
+	RONOISE = 10.4		;per BCD
+	phpadu = 266.648	;per BCD
+endif
+
 ;use the coverage map to compute the average coverage within each
 ;aperture, then adjust the above values appropriately, i.e. the
 ;read noise decreases by sqrt(n) but the exposure time increases by n
