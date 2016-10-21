@@ -240,10 +240,21 @@ def apply_array_location_correction(phot_groups_filepath):
 	meta = json.load(open(work_dir+'/metadata.json'))
 
 	# read in the array location correction values
-	if meta['channel'] is '1':
-		arrloc = pyfits.open('ch1_photcorr_ap_5.fits')[0].data
-	elif meta['channel'] is '2':
-		arrloc = pyfits.open('ch2_photcorr_ap_5.fits')[0].data
+	fp = work_dir+'/arrayloc.txt'
+	f = open(fp, 'w')
+	if meta['channel'] == '1':
+		fp = 'ch1_photcorr_ap_5.fits'
+		arrloc = pyfits.open(fp)[0].data
+		msg = "using {}".format(fp)
+		print msg
+		f.write(msg)
+	elif meta['channel'] == '2':
+		fp = 'ch2_photcorr_ap_5.fits'
+		arrloc = pyfits.open(fp)[0].data
+		msg = "using {}".format(fp)
+		print msg
+		f.write(msg)
+	f.close()
 
 	# read in the photometry JSON files
 	ch = json.load(open(phot_groups_filepath))
